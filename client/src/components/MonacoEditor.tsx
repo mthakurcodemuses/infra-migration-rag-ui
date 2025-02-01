@@ -10,8 +10,21 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const editor = useRef<monaco.editor.IStandaloneCodeEditor>();
 
+  // Configure Monaco environment before initialization
+  useEffect(() => {
+    // Set up Monaco environment if not already configured
+    if (!window.MonacoEnvironment) {
+      window.MonacoEnvironment = {
+        getWorkerUrl: function (_moduleId: string, label: string) {
+          const workerPath = `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/${label}/worker.js`;
+          return workerPath;
+        }
+      };
+    }
+  }, []);
+
   const { data: fileContent, error } = useQuery<string>({
-    queryKey: [`/api/files/content`, filePath],
+    queryKey: ["/api/files/content", { path: filePath }],
     enabled: !!filePath,
   });
 
@@ -21,7 +34,7 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
     try {
       // Initialize Monaco editor with error handling
       editor.current = monaco.editor.create(editorRef.current, {
-        value: "",
+        value: fileContent || "",
         theme: "vs-dark",
         automaticLayout: true,
         minimap: {
@@ -33,6 +46,26 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
         renderWhitespace: "selection",
         tabSize: 2,
       });
+
+      // Set language based on file extension
+      const extension = filePath.split(".").pop()?.toLowerCase();
+      const languageMap: Record<string, string> = {
+        ts: "typescript",
+        tsx: "typescript",
+        js: "javascript",
+        jsx: "javascript",
+        json: "json",
+        html: "html",
+        css: "css",
+        py: "python",
+        md: "markdown",
+      };
+
+      const language = languageMap[extension || ""] || "plaintext";
+      const model = editor.current.getModel();
+      if (model) {
+        monaco.editor.setModelLanguage(model, language);
+      }
     } catch (error) {
       console.error("Failed to initialize Monaco editor:", error);
     }
@@ -42,6 +75,7 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
     };
   }, []);
 
+  // Update editor content when file content changes
   useEffect(() => {
     if (!editor.current) return;
 
@@ -52,32 +86,12 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
       }
 
       if (fileContent !== undefined) {
-        const model = editor.current.getModel();
-        if (model) {
-          model.setValue(fileContent);
-        }
-
-        // Set language based on file extension
-        const extension = filePath.split(".").pop()?.toLowerCase();
-        const languageMap: Record<string, string> = {
-          ts: "typescript",
-          tsx: "typescript",
-          js: "javascript",
-          jsx: "javascript",
-          json: "json",
-          html: "html",
-          css: "css",
-          py: "python",
-          md: "markdown",
-        };
-
-        const language = languageMap[extension || ""] || "plaintext";
-        monaco.editor.setModelLanguage(model!, language);
+        editor.current.setValue(fileContent);
       }
     } catch (error) {
       console.error("Error updating editor content:", error);
     }
-  }, [fileContent, filePath, error]);
+  }, [fileContent, error]);
 
   return (
     <div ref={editorRef} className="h-full w-full" />

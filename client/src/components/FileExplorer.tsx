@@ -28,12 +28,12 @@ export function FileExplorer({ onFileSelect }: { onFileSelect: (path: string) =>
     setExpandedFolders(newExpanded);
   };
 
-  const renderNode = (node: FileNode, path: string = "") => {
-    const fullPath = path ? `${path}/${node.name}` : node.name;
-    const isExpanded = expandedFolders.has(fullPath);
+  const renderNode = (node: FileNode, parentPath: string = "") => {
+    const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+    const isExpanded = expandedFolders.has(currentPath);
 
     return (
-      <div key={fullPath} className="pl-2">
+      <div key={currentPath} className="pl-2">
         <Button
           variant="ghost"
           size="sm"
@@ -43,9 +43,9 @@ export function FileExplorer({ onFileSelect }: { onFileSelect: (path: string) =>
           )}
           onClick={() => {
             if (node.type === "directory") {
-              toggleFolder(fullPath);
+              toggleFolder(currentPath);
             } else {
-              onFileSelect(fullPath);
+              onFileSelect(`./${currentPath}`);
             }
           }}
         >
@@ -61,7 +61,7 @@ export function FileExplorer({ onFileSelect }: { onFileSelect: (path: string) =>
         </Button>
         {node.type === "directory" && isExpanded && node.children && (
           <div className="pl-4">
-            {node.children.map((child) => renderNode(child, fullPath))}
+            {node.children.map((child) => renderNode(child, currentPath))}
           </div>
         )}
       </div>
