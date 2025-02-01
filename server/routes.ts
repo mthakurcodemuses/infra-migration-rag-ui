@@ -47,11 +47,13 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const fullPath = resolve(path);
+      // Normalize path to prevent directory traversal
+      const fullPath = resolve(path).replace(/^(\.\.[\/\\])+/, "");
       const content = readFileSync(fullPath, "utf-8");
       res.send(content);
     } catch (error) {
-      res.status(500).json({ error: "Failed to read file" });
+      const err = error as Error;
+      res.status(500).json({ error: `Failed to read file: ${err.message}` });
     }
   });
 

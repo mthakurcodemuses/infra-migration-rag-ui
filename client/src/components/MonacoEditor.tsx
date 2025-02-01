@@ -2,6 +2,14 @@ import { useEffect, useRef } from "react";
 import * as monaco from "monaco-editor";
 import { useQuery } from "@tanstack/react-query";
 
+// Configure Monaco's worker setup
+self.MonacoEnvironment = {
+  getWorkerUrl: function (_moduleId: string, label: string) {
+    const workerPath = `/monaco-editor/min/vs/${label}/worker.js`;
+    return workerPath;
+  },
+};
+
 interface MonacoEditorProps {
   filePath: string;
 }
@@ -10,7 +18,7 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const editor = useRef<monaco.editor.IStandaloneCodeEditor>();
 
-  const { data: fileContent } = useQuery<string>({
+  const { data: fileContent, error } = useQuery<string>({
     queryKey: [`/api/files/content`, filePath],
     enabled: !!filePath,
   });
@@ -21,7 +29,6 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
     // Initialize Monaco editor
     editor.current = monaco.editor.create(editorRef.current, {
       value: "",
-      language: "typescript",
       theme: "vs-dark",
       automaticLayout: true,
       minimap: {
@@ -40,7 +47,14 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   }, []);
 
   useEffect(() => {
-    if (editor.current && fileContent !== undefined) {
+    if (!editor.current) return;
+
+    if (error) {
+      editor.current.setValue(`Error loading file: ${error}`);
+      return;
+    }
+
+    if (fileContent !== undefined) {
       const model = editor.current.getModel();
       if (model) {
         model.setValue(fileContent);
@@ -56,12 +70,14 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
         json: "json",
         html: "html",
         css: "css",
+        py: "python",
+        md: "markdown",
       };
-      
+
       const language = languageMap[extension || ""] || "plaintext";
       monaco.editor.setModelLanguage(model!, language);
     }
-  }, [fileContent, filePath]);
+  }, [fileContent, filePath, error]);
 
   return (
     <div ref={editorRef} className="h-full w-full" />
