@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebCodeStudio</title>
     <!-- Add Monaco editor CDN -->
     <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/editor/editor.main.min.css">
   </head>
@@ -10,8 +11,11 @@
     <div id="root"></div>
     <!-- Monaco editor base path configuration -->
     <script>
+      var require = { paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs' } };
       self.MonacoEnvironment = {
-        baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min'
+        getWorkerUrl: function (moduleId, label) {
+          return `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/${label}/worker.js`;
+        }
       };
     </script>
     <!-- Monaco editor core -->

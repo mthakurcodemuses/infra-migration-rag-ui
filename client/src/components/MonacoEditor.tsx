@@ -10,24 +10,12 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const editor = useRef<monaco.editor.IStandaloneCodeEditor>();
 
-  // Configure Monaco environment before initialization
-  useEffect(() => {
-    // Set up Monaco environment if not already configured
-    if (!window.MonacoEnvironment) {
-      window.MonacoEnvironment = {
-        getWorkerUrl: function (_moduleId: string, label: string) {
-          const workerPath = `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/${label}/worker.js`;
-          return workerPath;
-        }
-      };
-    }
-  }, []);
-
   const { data: fileContent, error } = useQuery<string>({
     queryKey: ["/api/files/content", { path: filePath }],
     enabled: !!filePath,
   });
 
+  // Initialize editor
   useEffect(() => {
     if (!editorRef.current) return;
 
