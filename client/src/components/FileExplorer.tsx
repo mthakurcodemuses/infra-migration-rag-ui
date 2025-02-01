@@ -12,7 +12,7 @@ interface FileNode {
 }
 
 export function FileExplorer({ onFileSelect }: { onFileSelect: (path: string) => void }) {
-  const { data: fileTree } = useQuery<FileNode[]>({
+  const { data: fileTree, isError } = useQuery<FileNode[]>({
     queryKey: ["/api/files"],
   });
 
@@ -29,7 +29,7 @@ export function FileExplorer({ onFileSelect }: { onFileSelect: (path: string) =>
   };
 
   const renderNode = (node: FileNode, path: string = "") => {
-    const fullPath = `${path}/${node.name}`;
+    const fullPath = path ? `${path}/${node.name}` : node.name;
     const isExpanded = expandedFolders.has(fullPath);
 
     return (
@@ -67,6 +67,10 @@ export function FileExplorer({ onFileSelect }: { onFileSelect: (path: string) =>
       </div>
     );
   };
+
+  if (isError) {
+    return <div className="p-4 text-destructive">Failed to load file tree</div>;
+  }
 
   return (
     <ScrollArea className="h-full">

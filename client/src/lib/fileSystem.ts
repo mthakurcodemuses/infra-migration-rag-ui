@@ -2,7 +2,11 @@ import { apiRequest } from "./queryClient";
 
 export async function readFile(path: string): Promise<string> {
   const response = await apiRequest("GET", `/api/files/content?path=${encodeURIComponent(path)}`);
-  return await response.text();
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(text);
+  }
+  return text;
 }
 
 export async function writeFile(path: string, content: string): Promise<void> {

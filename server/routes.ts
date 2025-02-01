@@ -12,45 +12,49 @@ interface FileNode {
 
 function buildFileTree(dir: string): FileNode[] {
   const files = readdirSync(dir);
-  return files.map(file => {
-    const path = join(dir, file);
-    const stats = statSync(path);
-    if (stats.isDirectory()) {
+  return files
+    .filter(file => !file.startsWith('.git'))
+    .map(file => {
+      const path = join(dir, file);
+      const stats = statSync(path);
+      if (stats.isDirectory()) {
+        return {
+          name: file,
+          type: "directory",
+          children: buildFileTree(path)
+        };
+      }
       return {
         name: file,
-        type: "directory",
-        children: buildFileTree(path)
+        type: "file"
       };
-    }
-    return {
-      name: file,
-      type: "file"
-    };
-  });
+    });
 }
 
 export function registerRoutes(app: Express): Server {
   // File system routes
   app.get("/api/files", (_req, res) => {
     try {
-      const fileTree = buildFileTree("./");
+      const fileTree = buildFileTree(".");
       res.json(fileTree);
     } catch (error) {
-      res.status(500).json({ error: "Failed to read file system" });
+      const err = error as Error;
+      res.status(500).json({ error: `Failed to read file system: ${err.message}` });
     }
   });
 
   app.get("/api/files/content", (req, res) => {
     const { path } = req.query;
+
     if (!path || typeof path !== "string") {
       return res.status(400).json({ error: "Path parameter is required" });
     }
 
     try {
       // Normalize path to prevent directory traversal
-      const fullPath = resolve(path).replace(/^(\.\.[\/\\])+/, "");
+      const fullPath = resolve(path).replace(/^(\.\.[\/\\])+/, '');
       const content = readFileSync(fullPath, "utf-8");
-      res.send(content);
+      res.type('text/plain').send(content);
     } catch (error) {
       const err = error as Error;
       res.status(500).json({ error: `Failed to read file: ${err.message}` });
