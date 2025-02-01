@@ -2,14 +2,6 @@ import { useEffect, useRef } from "react";
 import * as monaco from "monaco-editor";
 import { useQuery } from "@tanstack/react-query";
 
-// Configure Monaco's worker setup
-self.MonacoEnvironment = {
-  getWorkerUrl: function (_moduleId: string, label: string) {
-    const workerPath = `/monaco-editor/min/vs/${label}/worker.js`;
-    return workerPath;
-  },
-};
-
 interface MonacoEditorProps {
   filePath: string;
 }
@@ -26,20 +18,24 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   useEffect(() => {
     if (!editorRef.current) return;
 
-    // Initialize Monaco editor
-    editor.current = monaco.editor.create(editorRef.current, {
-      value: "",
-      theme: "vs-dark",
-      automaticLayout: true,
-      minimap: {
-        enabled: true,
-      },
-      scrollBeyondLastLine: false,
-      fontSize: 14,
-      lineNumbers: "on",
-      renderWhitespace: "selection",
-      tabSize: 2,
-    });
+    try {
+      // Initialize Monaco editor with error handling
+      editor.current = monaco.editor.create(editorRef.current, {
+        value: "",
+        theme: "vs-dark",
+        automaticLayout: true,
+        minimap: {
+          enabled: true,
+        },
+        scrollBeyondLastLine: false,
+        fontSize: 14,
+        lineNumbers: "on",
+        renderWhitespace: "selection",
+        tabSize: 2,
+      });
+    } catch (error) {
+      console.error("Failed to initialize Monaco editor:", error);
+    }
 
     return () => {
       editor.current?.dispose();
@@ -49,33 +45,37 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   useEffect(() => {
     if (!editor.current) return;
 
-    if (error) {
-      editor.current.setValue(`Error loading file: ${error}`);
-      return;
-    }
-
-    if (fileContent !== undefined) {
-      const model = editor.current.getModel();
-      if (model) {
-        model.setValue(fileContent);
+    try {
+      if (error) {
+        editor.current.setValue(`Error loading file: ${error}`);
+        return;
       }
 
-      // Set language based on file extension
-      const extension = filePath.split(".").pop()?.toLowerCase();
-      const languageMap: Record<string, string> = {
-        ts: "typescript",
-        tsx: "typescript",
-        js: "javascript",
-        jsx: "javascript",
-        json: "json",
-        html: "html",
-        css: "css",
-        py: "python",
-        md: "markdown",
-      };
+      if (fileContent !== undefined) {
+        const model = editor.current.getModel();
+        if (model) {
+          model.setValue(fileContent);
+        }
 
-      const language = languageMap[extension || ""] || "plaintext";
-      monaco.editor.setModelLanguage(model!, language);
+        // Set language based on file extension
+        const extension = filePath.split(".").pop()?.toLowerCase();
+        const languageMap: Record<string, string> = {
+          ts: "typescript",
+          tsx: "typescript",
+          js: "javascript",
+          jsx: "javascript",
+          json: "json",
+          html: "html",
+          css: "css",
+          py: "python",
+          md: "markdown",
+        };
+
+        const language = languageMap[extension || ""] || "plaintext";
+        monaco.editor.setModelLanguage(model!, language);
+      }
+    } catch (error) {
+      console.error("Error updating editor content:", error);
     }
   }, [fileContent, filePath, error]);
 
