@@ -57,39 +57,54 @@ export function ChatPanel() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        {!isConnected && (
-          <Card className="mb-2 p-3 bg-destructive text-destructive-foreground">
-            Connecting to chat server...
-          </Card>
-        )}
-        {messages.map((message) => (
-          <Card 
-            key={message.id}
-            className={`mb-2 p-3 ${
-              message.type === "system"
-                ? "bg-muted text-muted-foreground"
-                : message.type === "assistant" 
-                  ? "bg-secondary" 
-                  : "bg-primary text-primary-foreground"
-            }`}
-          >
-            {message.content}
-          </Card>
-        ))}
+    <div className="flex flex-col h-full border-x border-border">
+      <div className="border-b border-border p-3">
+        <h2 className="text-sm font-semibold">Agent</h2>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          {!isConnected && (
+            <Card className="bg-destructive/10 text-destructive p-3 text-sm">
+              Connecting to chat server...
+            </Card>
+          )}
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-lg p-3 text-sm ${
+                  message.type === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : message.type === "system"
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-secondary text-secondary-foreground"
+                }`}
+              >
+                {message.content}
+              </div>
+            </div>
+          ))}
+        </div>
       </ScrollArea>
-      <div className="p-4 border-t">
+
+      <div className="border-t border-border p-4">
         <div className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            placeholder="Type a message..."
+            placeholder="Message Agent..."
             className="flex-1"
             disabled={!isConnected}
           />
-          <Button onClick={handleSend} disabled={!isConnected}>
+          <Button 
+            onClick={handleSend} 
+            disabled={!isConnected}
+            size="icon"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
