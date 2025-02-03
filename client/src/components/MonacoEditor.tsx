@@ -20,14 +20,11 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
     if (!editorRef.current) return;
 
     try {
-      // Initialize Monaco editor with error handling
       editor.current = monaco.editor.create(editorRef.current, {
-        value: fileContent || "",
+        value: "",
         theme: "vs-dark",
         automaticLayout: true,
-        minimap: {
-          enabled: true,
-        },
+        minimap: { enabled: true },
         scrollBeyondLastLine: false,
         fontSize: 14,
         lineNumbers: "on",
@@ -35,32 +32,12 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
         tabSize: 2,
       });
 
-      // Set language based on file extension
-      const extension = filePath.split(".").pop()?.toLowerCase();
-      const languageMap: Record<string, string> = {
-        ts: "typescript",
-        tsx: "typescript",
-        js: "javascript",
-        jsx: "javascript",
-        json: "json",
-        html: "html",
-        css: "css",
-        py: "python",
-        md: "markdown",
+      return () => {
+        editor.current?.dispose();
       };
-
-      const language = languageMap[extension || ""] || "plaintext";
-      const model = editor.current.getModel();
-      if (model) {
-        monaco.editor.setModelLanguage(model, language);
-      }
     } catch (error) {
       console.error("Failed to initialize Monaco editor:", error);
     }
-
-    return () => {
-      editor.current?.dispose();
-    };
   }, []);
 
   // Update editor content when file content changes
@@ -74,12 +51,31 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
       }
 
       if (fileContent !== undefined) {
-        editor.current.setValue(fileContent);
+        const model = editor.current.getModel();
+        if (model) {
+          model.setValue(fileContent);
+
+          // Set language based on file extension
+          const extension = filePath.split(".").pop()?.toLowerCase();
+          const languageMap: Record<string, string> = {
+            ts: "typescript",
+            tsx: "typescript",
+            js: "javascript",
+            jsx: "javascript",
+            json: "json",
+            html: "html",
+            css: "css",
+            py: "python",
+            md: "markdown",
+          };
+
+          monaco.editor.setModelLanguage(model, languageMap[extension || ""] || "plaintext");
+        }
       }
     } catch (error) {
       console.error("Error updating editor content:", error);
     }
-  }, [fileContent, error]);
+  }, [fileContent, error, filePath]);
 
   return (
     <div ref={editorRef} className="h-full w-full" />

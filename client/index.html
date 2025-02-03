@@ -13,8 +13,12 @@
     <script>
       var require = { paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs' } };
       self.MonacoEnvironment = {
-        getWorkerUrl: function (moduleId, label) {
-          return `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/${label}/worker.js`;
+        getWorker: function(_workerId, label) {
+          const workerUrl = `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/${label}/worker.js`;
+          return new Worker(workerUrl, {
+            type: 'module',
+            name: label
+          });
         }
       };
     </script>
