@@ -94,10 +94,10 @@ export function ChatPanel() {
               <Card 
                 key={review.id} 
                 className={cn(
-                  "transition-colors rounded-lg overflow-hidden",
+                  "transition-all duration-200 rounded-lg overflow-hidden",
                   isCompleted 
                     ? "bg-secondary/5" 
-                    : "bg-background hover:bg-secondary/5"
+                    : "bg-background hover:bg-accent/50"
                 )}
               >
                 {/* Header */}
@@ -114,9 +114,9 @@ export function ChatPanel() {
                   {/* Expand/Collapse Icon */}
                   <div className="flex items-center gap-2">
                     {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <ChevronDown className="h-4 w-4 shrink-0" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <ChevronRight className="h-4 w-4 shrink-0" />
                     )}
                     <FileText className={cn(
                       "h-4 w-4 shrink-0",
@@ -145,7 +145,7 @@ export function ChatPanel() {
                   <div className="border-t border-border bg-card">
                     {/* Title Section */}
                     <div className="p-4 border-b border-border/50 bg-muted/30">
-                      <h3 className="text-sm font-medium text-foreground">
+                      <h3 className="text-sm font-semibold text-foreground">
                         {review.title}
                       </h3>
                     </div>
