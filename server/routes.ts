@@ -10,6 +10,44 @@ interface FileNode {
   children?: FileNode[];
 }
 
+interface ReviewMessage {
+  id: string;
+  type: "change" | "manual";
+  filePath: string;
+  title: string;
+  description: string;
+  choices: {
+    label: string;
+    action: string;
+  }[];
+}
+
+// Mock review messages for demonstration
+const mockReviews: ReviewMessage[] = [
+  {
+    id: "1",
+    type: "change",
+    filePath: "vpe-endpoint",
+    title: "VPE endpoint module has following changes",
+    description: "IP address = 10.10.10.10\ndebugging logs = enabled",
+    choices: [
+      { label: "Ignore", action: "ignore" },
+      { label: "Apply", action: "apply" }
+    ]
+  },
+  {
+    id: "2",
+    type: "manual",
+    filePath: "rds-oracle",
+    title: "RDS Oracle module has below changes",
+    description: "module \"rds-oracle\"\nOracle backup = enabled",
+    choices: [
+      { label: "Ignore", action: "ignore" },
+      { label: "Apply", action: "apply" }
+    ]
+  }
+];
+
 function buildFileTree(dir: string): FileNode[] {
   const files = readdirSync(dir);
   return files
@@ -51,7 +89,6 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      // Normalize path to prevent directory traversal
       const fullPath = resolve(path).replace(/^(\.\.[\/\\])+/, '');
       const content = readFileSync(fullPath, "utf-8");
       res.type('text/plain').send(content);
@@ -61,8 +98,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  const server = createServer(app);
+  // Review messages routes
+  app.get("/api/reviews", (_req, res) => {
+    res.json(mockReviews);
+  });
 
+  app.post("/api/reviews/:id/action", (req, res) => {
+    const { id } = req.params;
+    const { action } = req.body;
+
+    const review = mockReviews.find(r => r.id === id);
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    // Here you would handle the action (ignore/apply) for the specific review
+    console.log(`Handling action ${action} for review ${id}`);
+
+    res.json({ success: true });
+  });
+
+  const server = createServer(app);
+  
   // WebSocket server setup with proper upgrade handling
   const wss = new WebSocketServer({ noServer: true });
 
@@ -100,6 +157,6 @@ export function registerRoutes(app: Express): Server {
       }
     });
   });
-
+  
   return server;
 }

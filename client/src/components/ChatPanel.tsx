@@ -1,59 +1,50 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Send } from "lucide-react";
-import { useWebSocket } from "@/lib/websocket";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 
-interface Message {
+interface ReviewChoice {
+  label: string;
+  action: string;
+}
+
+interface ReviewMessage {
   id: string;
-  type: "user" | "assistant" | "system";
-  content: string;
-  timestamp: number;
+  type: "change" | "manual";
+  filePath: string;
+  title: string;
+  description: string;
+  choices: ReviewChoice[];
 }
 
 export function ChatPanel() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { sendMessage, lastMessage, isConnected } = useWebSocket();
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (lastMessage) {
-      try {
-        const message = JSON.parse(lastMessage);
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          type: message.type === "system" ? "system" : "assistant",
-          content: message.content,
-          timestamp: Date.now()
-        }]);
-      } catch (error) {
-        console.error('Error parsing message:', error);
+  const { data: reviews = [] } = useQuery<ReviewMessage[]>({
+    queryKey: ["/api/reviews"],
+  });
+
+  const currentReview = reviews[currentReviewIndex];
+  const hasMoreReviews = currentReviewIndex < reviews.length - 1;
+
+  const handleAction = async (reviewId: string, action: string) => {
+    try {
+      await fetch(`/api/reviews/${reviewId}/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+
+      setCompletedReviews(prev => new Set([...prev, reviewId]));
+
+      if (hasMoreReviews) {
+        setCurrentReviewIndex(prev => prev + 1);
       }
+    } catch (error) {
+      console.error('Failed to handle review action:', error);
     }
-  }, [lastMessage]);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSend = () => {
-    if (!input.trim() || !isConnected) return;
-
-    const newMessage: Message = {
-      id: crypto.randomUUID(),
-      type: "user",
-      content: input,
-      timestamp: Date.now()
-    };
-
-    setMessages(prev => [...prev, newMessage]);
-    sendMessage(JSON.stringify({ type: "message", content: input }));
-    setInput("");
   };
 
   return (
@@ -64,51 +55,42 @@ export function ChatPanel() {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
-          {!isConnected && (
-            <Card className="bg-destructive/10 text-destructive p-3 text-sm">
-              Connecting to chat server...
+          {currentReview && !completedReviews.has(currentReview.id) && (
+            <Card className="p-4 space-y-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-mono bg-secondary px-2 py-1 rounded">
+                  {currentReview.filePath}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium">{currentReview.title}</h3>
+                <pre className="whitespace-pre-wrap text-sm bg-secondary/50 p-2 rounded">
+                  {currentReview.description}
+                </pre>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2">
+                {currentReview.choices.map((choice) => (
+                  <Button
+                    key={choice.action}
+                    variant={choice.action === 'apply' ? 'default' : 'outline'}
+                    onClick={() => handleAction(currentReview.id, choice.action)}
+                  >
+                    {choice.label}
+                  </Button>
+                ))}
+              </div>
             </Card>
           )}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-lg p-3 text-sm ${
-                  message.type === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : message.type === "system"
-                    ? "bg-muted text-muted-foreground"
-                    : "bg-secondary text-secondary-foreground"
-                }`}
-              >
-                {message.content}
-              </div>
-            </div>
-          ))}
+
+          {reviews.length > 0 && reviews.every(r => completedReviews.has(r.id)) && (
+            <Card className="p-4 text-center text-muted-foreground">
+              All manual changes have been reviewed
+            </Card>
+          )}
         </div>
       </ScrollArea>
-
-      <div className="border-t border-border p-4">
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            placeholder="Message Agent..."
-            className="flex-1"
-            disabled={!isConnected}
-          />
-          <Button 
-            onClick={handleSend} 
-            disabled={!isConnected}
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
