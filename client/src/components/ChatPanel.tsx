@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, Check, AlertCircle, FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReviewChoice {
@@ -28,6 +28,16 @@ export function ChatPanel() {
     queryKey: ["/api/reviews"],
   });
 
+  // Auto-expand first unanswered review
+  useEffect(() => {
+    if (reviews.length > 0) {
+      const firstUnansweredReview = reviews.find(r => !completedReviews.has(r.id));
+      if (firstUnansweredReview) {
+        setExpandedReviews(new Set([firstUnansweredReview.id]));
+      }
+    }
+  }, [reviews, completedReviews]);
+
   const handleAction = async (reviewId: string, action: string) => {
     try {
       await fetch(`/api/reviews/${reviewId}/action`, {
@@ -36,33 +46,42 @@ export function ChatPanel() {
         body: JSON.stringify({ action })
       });
 
-      setCompletedReviews(prev => new Set([...prev, reviewId]));
-      setExpandedReviews(prev => {
-        const next = new Set(prev);
-        next.delete(reviewId);
-        return next;
-      });
+      setCompletedReviews(new Set([...Array.from(completedReviews), reviewId]));
+
+      // Close current review
+      const newExpanded = new Set(Array.from(expandedReviews));
+      newExpanded.delete(reviewId);
+
+      // Auto-expand next unanswered review
+      const currentIndex = reviews.findIndex(r => r.id === reviewId);
+      const nextUnanswered = reviews.slice(currentIndex + 1).find(r => !completedReviews.has(r.id));
+      if (nextUnanswered) {
+        newExpanded.add(nextUnanswered.id);
+      }
+
+      setExpandedReviews(newExpanded);
     } catch (error) {
       console.error('Failed to handle review action:', error);
     }
   };
 
   const toggleExpand = (reviewId: string) => {
-    setExpandedReviews(prev => {
-      const next = new Set(prev);
-      if (next.has(reviewId)) {
-        next.delete(reviewId);
-      } else {
-        next.add(reviewId);
-      }
-      return next;
-    });
+    const newExpanded = new Set(Array.from(expandedReviews));
+    if (newExpanded.has(reviewId)) {
+      newExpanded.delete(reviewId);
+    } else {
+      newExpanded.add(reviewId);
+    }
+    setExpandedReviews(newExpanded);
   };
 
   return (
     <div className="flex flex-col h-full border-x border-border">
-      <div className="border-b border-border p-3">
-        <h2 className="text-sm font-semibold">Agent</h2>
+      <div className="border-b border-border p-3 bg-secondary/10">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold">Agent</h2>
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
@@ -75,8 +94,10 @@ export function ChatPanel() {
               <Card 
                 key={review.id} 
                 className={cn(
-                  "p-4 transition-colors",
-                  isCompleted && "bg-secondary/20"
+                  "p-4 transition-colors border-l-2",
+                  isCompleted 
+                    ? "border-l-green-500 bg-secondary/10" 
+                    : "border-l-orange-500 shadow-sm"
                 )}
               >
                 <div 
@@ -89,20 +110,28 @@ export function ChatPanel() {
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   )}
 
-                  <span className="font-mono bg-secondary px-2 py-1 rounded text-sm">
+                  <FileText className={cn(
+                    "h-4 w-4",
+                    isCompleted ? "text-green-500" : "text-orange-500"
+                  )} />
+
+                  <span className="font-mono text-xs px-2 py-1 rounded bg-secondary/50">
                     {review.filePath}
                   </span>
 
                   {isCompleted && (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="flex items-center gap-1 text-xs text-green-500 ml-auto">
+                      <Check className="h-3 w-3" />
+                      Reviewed
+                    </span>
                   )}
                 </div>
 
                 {isExpanded && (
                   <div className="mt-4 space-y-4">
                     <div className="space-y-2">
-                      <h3 className="font-medium">{review.title}</h3>
-                      <pre className="whitespace-pre-wrap text-sm bg-secondary/50 p-2 rounded">
+                      <h3 className="font-medium text-sm">{review.title}</h3>
+                      <pre className="whitespace-pre-wrap text-sm bg-secondary/30 p-3 rounded-md border border-border">
                         {review.description}
                       </pre>
                     </div>
@@ -114,7 +143,18 @@ export function ChatPanel() {
                             key={choice.action}
                             variant={choice.action === 'apply' ? 'default' : 'outline'}
                             onClick={() => handleAction(review.id, choice.action)}
+                            className={cn(
+                              "gap-2",
+                              choice.action === 'apply' 
+                                ? "bg-green-500 hover:bg-green-600" 
+                                : "border-red-200 hover:bg-red-50"
+                            )}
                           >
+                            {choice.action === 'apply' ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <X className="h-4 w-4" />
+                            )}
                             {choice.label}
                           </Button>
                         ))}
@@ -127,8 +167,11 @@ export function ChatPanel() {
           })}
 
           {reviews.length > 0 && reviews.every(r => completedReviews.has(r.id)) && (
-            <Card className="p-4 text-center text-muted-foreground">
-              All manual changes have been reviewed
+            <Card className="p-4 text-center border-green-500 border bg-green-50/10">
+              <div className="flex items-center justify-center gap-2 text-green-500">
+                <Check className="h-4 w-4" />
+                <span>All manual changes have been reviewed</span>
+              </div>
             </Card>
           )}
         </div>
