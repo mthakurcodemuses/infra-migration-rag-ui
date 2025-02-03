@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronRight, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ReviewChoice {
   label: string;
@@ -19,15 +21,12 @@ interface ReviewMessage {
 }
 
 export function ChatPanel() {
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());
+  const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
 
   const { data: reviews = [] } = useQuery<ReviewMessage[]>({
     queryKey: ["/api/reviews"],
   });
-
-  const currentReview = reviews[currentReviewIndex];
-  const hasMoreReviews = currentReviewIndex < reviews.length - 1;
 
   const handleAction = async (reviewId: string, action: string) => {
     try {
@@ -38,13 +37,26 @@ export function ChatPanel() {
       });
 
       setCompletedReviews(prev => new Set([...prev, reviewId]));
-
-      if (hasMoreReviews) {
-        setCurrentReviewIndex(prev => prev + 1);
-      }
+      setExpandedReviews(prev => {
+        const next = new Set(prev);
+        next.delete(reviewId);
+        return next;
+      });
     } catch (error) {
       console.error('Failed to handle review action:', error);
     }
+  };
+
+  const toggleExpand = (reviewId: string) => {
+    setExpandedReviews(prev => {
+      const next = new Set(prev);
+      if (next.has(reviewId)) {
+        next.delete(reviewId);
+      } else {
+        next.add(reviewId);
+      }
+      return next;
+    });
   };
 
   return (
@@ -55,34 +67,64 @@ export function ChatPanel() {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
-          {currentReview && !completedReviews.has(currentReview.id) && (
-            <Card className="p-4 space-y-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-mono bg-secondary px-2 py-1 rounded">
-                  {currentReview.filePath}
-                </span>
-              </div>
+          {reviews.map((review) => {
+            const isCompleted = completedReviews.has(review.id);
+            const isExpanded = expandedReviews.has(review.id);
 
-              <div className="space-y-2">
-                <h3 className="font-medium">{currentReview.title}</h3>
-                <pre className="whitespace-pre-wrap text-sm bg-secondary/50 p-2 rounded">
-                  {currentReview.description}
-                </pre>
-              </div>
+            return (
+              <Card 
+                key={review.id} 
+                className={cn(
+                  "p-4 transition-colors",
+                  isCompleted && "bg-secondary/20"
+                )}
+              >
+                <div 
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleExpand(review.id)}
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
 
-              <div className="flex gap-2 justify-end pt-2">
-                {currentReview.choices.map((choice) => (
-                  <Button
-                    key={choice.action}
-                    variant={choice.action === 'apply' ? 'default' : 'outline'}
-                    onClick={() => handleAction(currentReview.id, choice.action)}
-                  >
-                    {choice.label}
-                  </Button>
-                ))}
-              </div>
-            </Card>
-          )}
+                  <span className="font-mono bg-secondary px-2 py-1 rounded text-sm">
+                    {review.filePath}
+                  </span>
+
+                  {isCompleted && (
+                    <Check className="h-4 w-4 text-green-500" />
+                  )}
+                </div>
+
+                {isExpanded && (
+                  <div className="mt-4 space-y-4">
+                    <div className="space-y-2">
+                      <h3 className="font-medium">{review.title}</h3>
+                      <pre className="whitespace-pre-wrap text-sm bg-secondary/50 p-2 rounded">
+                        {review.description}
+                      </pre>
+                    </div>
+
+                    {!isCompleted && (
+                      <div className="flex gap-2 justify-end pt-2">
+                        {review.choices.map((choice) => (
+                          <Button
+                            key={choice.action}
+                            variant={choice.action === 'apply' ? 'default' : 'outline'}
+                            onClick={() => handleAction(review.id, choice.action)}
+                          >
+                            {choice.label}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
 
           {reviews.length > 0 && reviews.every(r => completedReviews.has(r.id)) && (
             <Card className="p-4 text-center text-muted-foreground">
