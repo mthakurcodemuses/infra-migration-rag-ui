@@ -94,58 +94,73 @@ export function ChatPanel() {
               <Card 
                 key={review.id} 
                 className={cn(
-                  "transition-colors rounded-lg overflow-hidden border shadow-sm",
+                  "transition-colors rounded-lg overflow-hidden",
                   isCompleted 
                     ? "bg-secondary/5" 
-                    : "bg-background hover:shadow-md"
+                    : "bg-background hover:bg-secondary/5"
                 )}
               >
+                {/* Header */}
                 <div 
                   className={cn(
-                    "flex items-center gap-2 p-3 cursor-pointer border-l-2 transition-colors",
+                    "flex items-center gap-2 p-3 cursor-pointer",
+                    "border-l-[3px] transition-colors",
                     isCompleted 
-                      ? "border-l-green-500/50" 
-                      : "border-l-orange-500/50 hover:border-l-orange-500"
+                      ? "border-green-500/50" 
+                      : "border-orange-500/50 hover:border-orange-500"
                   )}
                   onClick={() => toggleExpand(review.id)}
                 >
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  )}
-
-                  <FileText className={cn(
-                    "h-4 w-4 shrink-0",
-                    isCompleted ? "text-green-500" : "text-orange-500"
-                  )} />
-
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-secondary/30 truncate">
-                      {review.filePath}
-                    </span>
-
-                    {isCompleted && (
-                      <span className="flex items-center gap-1 text-xs text-green-500 shrink-0">
-                        <Check className="h-3 w-3" />
-                        Reviewed
-                      </span>
+                  {/* Expand/Collapse Icon */}
+                  <div className="flex items-center gap-2">
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                     )}
+                    <FileText className={cn(
+                      "h-4 w-4 shrink-0",
+                      isCompleted ? "text-green-500" : "text-orange-500"
+                    )} />
+                  </div>
+
+                  {/* Title and Status */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-mono text-xs px-2 py-0.5 rounded-sm bg-secondary/30 truncate">
+                        {review.filePath}
+                      </span>
+                      {isCompleted && (
+                        <span className="flex items-center gap-1 text-xs text-green-500 shrink-0">
+                          <Check className="h-3 w-3" />
+                          Reviewed
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
+                {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t border-border">
-                    <div className="p-3 space-y-3">
+                  <div className="border-t border-border bg-card">
+                    {/* Title Section */}
+                    <div className="p-4 border-b border-border/50 bg-muted/30">
                       <h3 className="text-sm font-medium text-foreground">
                         {review.title}
                       </h3>
-                      <pre className="text-xs font-mono whitespace-pre-wrap bg-secondary/20 p-3 rounded-md">
+                    </div>
+
+                    {/* Description Section */}
+                    <div className="p-4">
+                      <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap bg-muted/50 p-4 rounded-md border border-border/50 overflow-x-auto">
                         {review.description}
                       </pre>
+                    </div>
 
-                      {!isCompleted && (
-                        <div className="flex gap-2 justify-end pt-2">
+                    {/* Actions Section */}
+                    {!isCompleted && (
+                      <div className="p-4 bg-card border-t border-border/50">
+                        <div className="flex gap-2 justify-end">
                           {review.choices.map((choice) => (
                             <Button
                               key={choice.action}
@@ -153,9 +168,9 @@ export function ChatPanel() {
                               variant={choice.action === 'apply' ? 'default' : 'outline'}
                               onClick={() => handleAction(review.id, choice.action)}
                               className={cn(
-                                "gap-1.5",
+                                "gap-1.5 min-w-[100px]",
                                 choice.action === 'apply' 
-                                  ? "bg-green-500 hover:bg-green-600 text-white" 
+                                  ? "bg-green-500 hover:bg-green-600 text-white shadow-sm" 
                                   : "border-red-200 hover:bg-red-50 text-red-600 hover:text-red-700"
                               )}
                             >
@@ -164,12 +179,12 @@ export function ChatPanel() {
                               ) : (
                                 <X className="h-3.5 w-3.5" />
                               )}
-                              <span className="text-xs">{choice.label}</span>
+                              <span className="text-xs font-medium">{choice.label}</span>
                             </Button>
                           ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>
