@@ -1,5 +1,12 @@
-import { Editor } from "@monaco-editor/react";
+import { Editor, loader } from "@monaco-editor/react";
 import { useQuery } from "@tanstack/react-query";
+
+// Configure the Monaco Editor loader to use CDN
+loader.config({
+  paths: {
+    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs'
+  }
+});
 
 interface MonacoEditorProps {
   filePath: string;
@@ -33,6 +40,17 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
     return languageMap[extension] || "plaintext";
   };
 
+  // Handle editor mounting
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    // You can customize editor instance here
+    editor.focus();
+  };
+
+  // Handle editor loading error
+  const handleEditorLoadError = (error: any) => {
+    console.error('Failed to load editor:', error);
+  };
+
   return (
     <Editor
       height="100%"
@@ -49,6 +67,8 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
         automaticLayout: true,
       }}
       loading={<div className="p-4">Loading editor...</div>}
+      onMount={handleEditorDidMount}
+      onError={handleEditorLoadError}
     />
   );
 }
