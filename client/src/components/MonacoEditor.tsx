@@ -12,10 +12,12 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   });
 
   // Detect language based on file extension
-  const getLanguage = (path: string) => {
-    if (!path) return "plaintext";
+  const getLanguage = () => {
+    if (!filePath) return "plaintext";
 
-    const extension = path.split(".").pop()?.toLowerCase();
+    const parts = filePath.split(".");
+    const extension = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+
     const languageMap: Record<string, string> = {
       ts: "typescript",
       tsx: "typescript",
@@ -28,14 +30,14 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
       md: "markdown",
     };
 
-    return extension ? languageMap[extension] || "plaintext" : "plaintext";
+    return languageMap[extension] || "plaintext";
   };
 
   return (
     <Editor
       height="100%"
       theme="vs-dark"
-      language={getLanguage(filePath)}
+      language={getLanguage()}
       value={error ? `Error loading file: ${error}` : fileContent}
       options={{
         minimap: { enabled: true },
