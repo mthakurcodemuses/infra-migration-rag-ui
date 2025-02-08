@@ -7,6 +7,14 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+async function parseResponse(res: Response) {
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return res.json();
+  }
+  return res.text();
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -46,7 +54,7 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    return parseResponse(res);
   };
 
 export const queryClient = new QueryClient({

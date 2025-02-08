@@ -1,30 +1,11 @@
 import { Editor, OnMount, OnChange, loader } from "@monaco-editor/react";
 import { useQuery } from "@tanstack/react-query";
-import * as monaco from 'monaco-editor';
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-
-// Configure loader
-self.MonacoEnvironment = {
-  getWorker(_, label) {
-    if (label === 'json') {
-      return new jsonWorker();
-    }
-    if (label === 'css' || label === 'scss' || label === 'less') {
-      return new cssWorker();
-    }
-    if (label === 'html' || label === 'handlebars' || label === 'razor') {
-      return new htmlWorker();
-    }
-    if (label === 'typescript' || label === 'javascript') {
-      return new tsWorker();
-    }
-    return new editorWorker();
-  }
-};
+import * as monaco from "monaco-editor";
+import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
+import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
+import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
+import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
 interface MonacoEditorProps {
   filePath: string;
@@ -38,10 +19,13 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
 
   // Detect language based on file extension
   const getLanguage = () => {
+    console.log("Filepath: ", filePath);
     if (!filePath) return "plaintext";
 
     const parts = filePath.split(".");
-    const extension = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+    console.log("Filepath parts: ", parts);
+    const extension =
+      parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
 
     const languageMap: Record<string, string> = {
       ts: "typescript",
@@ -54,6 +38,8 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
       py: "python",
       md: "markdown",
     };
+
+    console.log("Language ", languageMap[extension]);
 
     return languageMap[extension] || "plaintext";
   };
@@ -88,7 +74,7 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
   // Handle content changes if needed
   const handleEditorChange: OnChange = (value, event) => {
     // Handle content changes here if needed
-    console.log('Content changed');
+    console.log("Content changed");
   };
 
   return (
@@ -98,21 +84,6 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
         theme="vs-dark"
         language={getLanguage()}
         value={error ? `Error loading file: ${error}` : fileContent}
-        options={{
-          minimap: { enabled: true },
-          scrollBeyondLastLine: false,
-          fontSize: 14,
-          lineNumbers: "on",
-          renderWhitespace: "selection",
-          tabSize: 2,
-          automaticLayout: true,
-          wordWrap: "on",
-          suggestOnTriggerCharacters: true,
-          quickSuggestions: true,
-          bracketPairColorization: {
-            enabled: true
-          }
-        }}
         loading={
           <div className="flex items-center justify-center h-full">
             <p className="text-lg">Loading editor...</p>
@@ -120,11 +91,11 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
         }
         beforeMount={(monaco) => {
           // Configure editor before mounting
-          monaco.editor.defineTheme('custom-dark', {
-            base: 'vs-dark',
+          monaco.editor.defineTheme("custom-dark", {
+            base: "vs-dark",
             inherit: true,
             rules: [],
-            colors: {}
+            colors: {},
           });
         }}
         onMount={handleEditorDidMount}
