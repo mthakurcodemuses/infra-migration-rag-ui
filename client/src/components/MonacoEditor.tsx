@@ -1,11 +1,15 @@
-import { Editor, loader } from "@monaco-editor/react";
+import { Editor, OnMount, OnChange, loader } from "@monaco-editor/react";
 import { useQuery } from "@tanstack/react-query";
 
-// Configure the Monaco Editor loader to use CDN
+// Configure the Monaco Editor loader
 loader.config({
   paths: {
-    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs'
-  }
+    // Using official Monaco Editor CDN
+    vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs",
+  },
+  "vs/nls": {
+    availableLanguages: {},
+  },
 });
 
 interface MonacoEditorProps {
@@ -40,35 +44,67 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
     return languageMap[extension] || "plaintext";
   };
 
-  // Handle editor mounting
-  const handleEditorDidMount = (editor: any, monaco: any) => {
-    // You can customize editor instance here
+  // Handle editor mounting with proper types
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    // Enable basic language features
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: false,
+      noSyntaxValidation: false,
+    });
+
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: false,
+      noSyntaxValidation: false,
+    });
+
     editor.focus();
   };
 
-  // Handle editor loading error
-  const handleEditorLoadError = (error: any) => {
-    console.error('Failed to load editor:', error);
+  // Handle content changes if needed
+  const handleEditorChange: OnChange = (value, event) => {
+    // Handle content changes here if needed
+    console.log('Content changed');
   };
 
   return (
-    <Editor
-      height="100%"
-      theme="vs-dark"
-      language={getLanguage()}
-      value={error ? `Error loading file: ${error}` : fileContent}
-      options={{
-        minimap: { enabled: true },
-        scrollBeyondLastLine: false,
-        fontSize: 14,
-        lineNumbers: "on",
-        renderWhitespace: "selection",
-        tabSize: 2,
-        automaticLayout: true,
-      }}
-      loading={<div className="p-4">Loading editor...</div>}
-      onMount={handleEditorDidMount}
-      onError={handleEditorLoadError}
-    />
+    <div className="h-full w-full">
+      <Editor
+        height="100%"
+        theme="vs-dark"
+        language={getLanguage()}
+        value={error ? `Error loading file: ${error}` : fileContent}
+        options={{
+          minimap: { enabled: true },
+          scrollBeyondLastLine: false,
+          fontSize: 14,
+          lineNumbers: "on",
+          renderWhitespace: "selection",
+          tabSize: 2,
+          automaticLayout: true,
+          wordWrap: "on",
+          suggestOnTriggerCharacters: true,
+          quickSuggestions: true,
+          bracketPairColorization: {
+            enabled: true
+          }
+        }}
+        loading={
+          <div className="flex items-center justify-center h-full">
+            <p className="text-lg">Loading editor...</p>
+          </div>
+        }
+        beforeMount={(monaco) => {
+          // Configure editor before mounting
+          monaco.editor.defineTheme('custom-dark', {
+            base: 'vs-dark',
+            inherit: true,
+            rules: [],
+            colors: {}
+          });
+        }}
+        onMount={handleEditorDidMount}
+        onChange={handleEditorChange}
+      />
+    </div>
   );
 }
