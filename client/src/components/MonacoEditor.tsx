@@ -1,16 +1,5 @@
-import { Editor, OnMount, OnChange, loader } from "@monaco-editor/react";
+import { Editor, OnMount, OnChange } from "@monaco-editor/react";
 import { useQuery } from "@tanstack/react-query";
-
-// Configure the Monaco Editor loader
-loader.config({
-  paths: {
-    // Using official Monaco Editor CDN
-    vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs",
-  },
-  "vs/nls": {
-    availableLanguages: {},
-  },
-});
 
 interface MonacoEditorProps {
   filePath: string;
@@ -55,6 +44,17 @@ export function MonacoEditor({ filePath }: MonacoEditorProps) {
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: false,
       noSyntaxValidation: false,
+    });
+
+    // Configure JavaScript and TypeScript compilation options
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+      allowNonTsExtensions: true,
+    });
+
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+      allowNonTsExtensions: true,
     });
 
     editor.focus();
