@@ -84,6 +84,11 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/files/content", (req, res) => {
     const { path } = req.query;
 
+    // Log the request details
+    console.log("Request received:");
+    console.log("Query parameters:", req.query);
+    console.log("Path parameter:", path);
+
     if (!path || typeof path !== "string") {
       return res.status(400).json({ error: "Path parameter is required" });
     }
