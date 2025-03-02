@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Check, AlertCircle, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ReviewChoice {
   label: string;
@@ -34,27 +35,12 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
     queryKey: ["/api/reviews", { mode }],
   });
 
-  // Auto-expand first unanswered review and open its files
-  useEffect(() => {
-    if (reviews.length > 0) {
-      const firstUnansweredReview = reviews.find(r => !completedReviews.has(r.id));
-      if (firstUnansweredReview) {
-        setExpandedReviews(new Set([firstUnansweredReview.id]));
-        if (firstUnansweredReview.filesToReview?.length > 0) {
-          onReviewFiles(firstUnansweredReview.filesToReview);
-        }
-      }
-    }
-  }, [reviews, completedReviews, onReviewFiles]);
-
-  const handleAction = async (reviewId: string, action: string) => {
-    try {
-      await fetch(`/api/reviews/${reviewId}/action`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action })
-      });
-
+  const reviewActionMutation = useMutation({
+    mutationFn: async ({ reviewId, action }: { reviewId: string; action: string }) => {
+      const response = await apiRequest('POST', `/api/reviews/${reviewId}/action`, { action });
+      return response.json();
+    },
+    onSuccess: (_, { reviewId }) => {
       setCompletedReviews(new Set([...Array.from(completedReviews), reviewId]));
 
       // Close current review
@@ -72,9 +58,24 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
       }
 
       setExpandedReviews(newExpanded);
-    } catch (error) {
-      console.error('Failed to handle review action:', error);
     }
+  });
+
+  // Auto-expand first unanswered review and open its files
+  useEffect(() => {
+    if (reviews.length > 0) {
+      const firstUnansweredReview = reviews.find(r => !completedReviews.has(r.id));
+      if (firstUnansweredReview) {
+        setExpandedReviews(new Set([firstUnansweredReview.id]));
+        if (firstUnansweredReview.filesToReview?.length > 0) {
+          onReviewFiles(firstUnansweredReview.filesToReview);
+        }
+      }
+    }
+  }, [reviews, completedReviews, onReviewFiles]);
+
+  const handleAction = async (reviewId: string, action: string) => {
+    await reviewActionMutation.mutateAsync({ reviewId, action });
   };
 
   const toggleExpand = (reviewId: string) => {
@@ -199,6 +200,7 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
                             variant="default"
                             onClick={() => handleAction(review.id, 'completed')}
                             className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
+                            disabled={reviewActionMutation.isPending}
                           >
                             <Check className="h-3.5 w-3.5" />
                             <span className="text-xs font-medium">
