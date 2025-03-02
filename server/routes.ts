@@ -15,52 +15,71 @@ interface ReviewMessage {
   filePath: string;
   title: string;
   description: string;
-  filesToReview: string[];  // Add list of files to review
+  filesToReview: string[];
   choices: {
     label: string;
     action: string;
   }[];
 }
 
-// Update mock data to include filesToReview
+// Update mock data to use actual files from the codebase
 const mockReviews: ReviewMessage[] = [
   {
     id: "1",
     type: "change",
-    filePath: "server/config.ts",
-    title: "Configuration changes detected",
-    description: `New environment variables added:
+    filePath: "client/src/components/MonacoEditor.tsx",
+    title: "Editor configuration update",
+    description: `Monaco Editor Component Changes:
 
-DEBUG_MODE=true
-LOG_LEVEL=verbose
+Configuration Updates:
+- Added TypeScript compilation support
+- Enhanced theme configuration
+- Improved error handling
+- Updated editor options for better performance
 
-Additional Information:
-These changes will enable enhanced logging capabilities throughout the application. The debug mode will expose more detailed information during development and testing phases.
+Technical Details:
+1. TypeScript Configuration
+   - Added semantic validation
+   - Enabled syntax validation
+   - Set compilation target to latest
+   - Configured allowNonTsExtensions
 
-Technical Impact:
-1. Increased visibility into application behavior
-2. More detailed error reporting
-3. Performance monitoring capabilities
-4. Enhanced debugging tools access
+2. Theme Settings
+   - Implemented custom dark theme
+   - Added support for syntax highlighting
+   - Updated token colors
+   - Enhanced readability settings
 
-Security Considerations:
-- Debug mode should be disabled in production
-- Log levels should be appropriately set
-- Sensitive information should be properly masked
+3. Performance Optimizations
+   - Enabled automatic layout
+   - Configured minimap settings
+   - Optimized rendering
+   - Added proper cleanup on unmount
 
-Configuration Details:
+4. Error Handling
+   - Enhanced error display
+   - Added validation messages
+   - Improved error recovery
+   - Updated error boundaries
+
+Code Impact:
 {
-  "debug": {
-    "enabled": true,
-    "level": "verbose",
-    "mask_sensitive": true,
-    "log_rotation": "daily",
-    "retention_days": 7
+  "compiler": {
+    "syntaxValidation": true,
+    "semanticValidation": true,
+    "diagnostics": true,
+    "completions": true
+  },
+  "editor": {
+    "theme": "custom-dark",
+    "minimap": true,
+    "lineNumbers": true,
+    "wordWrap": true
   }
 }
 
-Please review these changes carefully as they affect the core system behavior.`,
-    filesToReview: ["server/config.ts", "server/index.ts"],
+Please review these changes carefully as they affect the core editor functionality.`,
+    filesToReview: ["client/src/components/MonacoEditor.tsx", "client/src/lib/queryClient.ts"],
     choices: [
       { label: "Keep changes", action: "keep" },
       { label: "Remove changes", action: "remove" }
@@ -69,10 +88,10 @@ Please review these changes carefully as they affect the core system behavior.`,
   {
     id: "2",
     type: "change",
-    filePath: "client/src/components/MonacoEditor.tsx",
-    title: "Editor configuration update",
-    description: "Monaco editor configuration changes:\n- Added TypeScript support\n- Updated theme settings",
-    filesToReview: ["client/src/components/MonacoEditor.tsx", "client/src/lib/editorConfig.ts"],
+    filePath: "client/src/components/ReviewPanel.tsx",
+    title: "Review panel functionality update",
+    description: "Review panel component changes:\n- Enhanced review workflow\n- Added better status tracking\n- Improved UI feedback",
+    filesToReview: ["client/src/components/ReviewPanel.tsx", "client/src/components/IDELayout.tsx"],
     choices: [
       { label: "Keep changes", action: "keep" },
       { label: "Remove changes", action: "remove" }
