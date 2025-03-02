@@ -15,9 +15,10 @@ import type { OpenFile } from "./IDELayout";
 interface MonacoEditorProps {
   files: OpenFile[];
   onCloseFile: (path: string) => void;
+  onFileChange: (path: string, content: string) => void;
 }
 
-export function MonacoEditor({ files, onCloseFile }: MonacoEditorProps) {
+export function MonacoEditor({ files, onCloseFile, onFileChange }: MonacoEditorProps) {
   const [editedContents, setEditedContents] = useState<Record<string, string>>({});
 
   const activeFile = files.find(f => f.active);
@@ -81,6 +82,7 @@ export function MonacoEditor({ files, onCloseFile }: MonacoEditorProps) {
         ...prev,
         [activeFile.path]: value
       }));
+      onFileChange(activeFile.path, value);
     }
   };
 

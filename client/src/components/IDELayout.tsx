@@ -3,6 +3,9 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { FileExplorer } from "./FileExplorer";
 import { MonacoEditor } from "./MonacoEditor";
 import { ReviewPanel } from "./ReviewPanel";
+import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export interface OpenFile {
   path: string;
@@ -11,10 +14,12 @@ export interface OpenFile {
 
 interface IDELayoutProps {
   mode: "automated" | "manual";
+  onClose?: () => void;
 }
 
-export function IDELayout({ mode }: IDELayoutProps) {
+export function IDELayout({ mode, onClose }: IDELayoutProps) {
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
+  const [modifiedFiles, setModifiedFiles] = useState<Record<string, string>>({});
 
   const handleFileSelect = (filePath: string) => {
     setOpenFiles(prev => {
@@ -51,35 +56,76 @@ export function IDELayout({ mode }: IDELayoutProps) {
     });
   };
 
+  const handleFileChange = (path: string, content: string) => {
+    setModifiedFiles(prev => ({
+      ...prev,
+      [path]: content
+    }));
+  };
+
+  const saveFilesMutation = useMutation({
+    mutationFn: async () => {
+      // Save all modified files
+      const savePromises = Object.entries(modifiedFiles).map(([path, content]) => 
+        apiRequest('POST', '/api/files/save', { path, content })
+      );
+      await Promise.all(savePromises);
+    },
+    onSuccess: () => {
+      if (onClose) onClose();
+    }
+  });
+
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-screen">
-      <ResizablePanel defaultSize={20} minSize={15} maxSize={25}>
-        <FileExplorer onFileSelect={handleFileSelect} />
-      </ResizablePanel>
+    <div className="flex flex-col h-full">
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={25}>
+          <FileExplorer onFileSelect={handleFileSelect} />
+        </ResizablePanel>
 
-      <ResizableHandle />
+        <ResizableHandle />
 
-      <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
-        <ReviewPanel 
-          mode={mode} 
-          onReviewFiles={handleReviewFiles} 
-        />
-      </ResizablePanel>
-
-      <ResizableHandle />
-
-      <ResizablePanel defaultSize={55}>
-        {openFiles.length > 0 ? (
-          <MonacoEditor 
-            files={openFiles}
-            onCloseFile={handleCloseFile}
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
+          <ReviewPanel 
+            mode={mode} 
+            onReviewFiles={handleReviewFiles} 
           />
-        ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Select a file to edit
-          </div>
-        )}
-      </ResizablePanel>
-    </ResizablePanelGroup>
+        </ResizablePanel>
+
+        <ResizableHandle />
+
+        <ResizablePanel defaultSize={55}>
+          {openFiles.length > 0 ? (
+            <MonacoEditor 
+              files={openFiles}
+              onCloseFile={handleCloseFile}
+              onFileChange={handleFileChange}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              Select a file to edit
+            </div>
+          )}
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
+      {/* Button Bar */}
+      <div className="flex justify-end gap-2 p-4 border-t">
+        <Button
+          variant="outline"
+          onClick={onClose}
+          disabled={saveFilesMutation.isPending}
+        >
+          Exit without Saving
+        </Button>
+        <Button
+          variant="default"
+          onClick={() => saveFilesMutation.mutate()}
+          disabled={saveFilesMutation.isPending || Object.keys(modifiedFiles).length === 0}
+        >
+          Save & Exit
+        </Button>
+      </div>
+    </div>
   );
 }

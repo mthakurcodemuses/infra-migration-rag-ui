@@ -111,22 +111,22 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
             const isExpanded = expandedReviews.has(review.id);
 
             return (
-              <Card 
-                key={review.id} 
+              <Card
+                key={review.id}
                 className={cn(
                   "transition-all duration-200 rounded-lg overflow-hidden",
-                  isCompleted 
-                    ? "bg-secondary/5" 
+                  isCompleted
+                    ? "bg-secondary/5"
                     : "bg-background hover:bg-accent/50"
                 )}
               >
                 {/* Header */}
-                <div 
+                <div
                   className={cn(
                     "flex items-center gap-2 p-3 cursor-pointer",
                     "border-l-[3px] transition-colors",
-                    isCompleted 
-                      ? "border-green-500/50" 
+                    isCompleted
+                      ? "border-green-500/50"
                       : "border-orange-500/50 hover:border-orange-500"
                   )}
                   onClick={() => toggleExpand(review.id)}
@@ -146,14 +146,14 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
 
                   {/* Title and Status */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline gap-2 justify-between">
                       <span className="font-mono text-xs px-2 py-0.5 rounded-sm bg-secondary/30 truncate">
                         {review.filePath}
                       </span>
                       {isCompleted && (
                         <span className="flex items-center gap-1 text-xs text-green-500 shrink-0">
                           <Check className="h-3 w-3" />
-                          {mode === "automated" ? "Decision applied" : "Reviewed"}
+                          Reviewed
                         </span>
                       )}
                     </div>
