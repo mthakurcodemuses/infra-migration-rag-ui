@@ -29,7 +29,37 @@ const mockReviews: ReviewMessage[] = [
     type: "change",
     filePath: "server/config.ts",
     title: "Configuration changes detected",
-    description: "New environment variables added:\nDEBUG_MODE=true\nLOG_LEVEL=verbose",
+    description: `New environment variables added:
+
+DEBUG_MODE=true
+LOG_LEVEL=verbose
+
+Additional Information:
+These changes will enable enhanced logging capabilities throughout the application. The debug mode will expose more detailed information during development and testing phases.
+
+Technical Impact:
+1. Increased visibility into application behavior
+2. More detailed error reporting
+3. Performance monitoring capabilities
+4. Enhanced debugging tools access
+
+Security Considerations:
+- Debug mode should be disabled in production
+- Log levels should be appropriately set
+- Sensitive information should be properly masked
+
+Configuration Details:
+{
+  "debug": {
+    "enabled": true,
+    "level": "verbose",
+    "mask_sensitive": true,
+    "log_rotation": "daily",
+    "retention_days": 7
+  }
+}
+
+Please review these changes carefully as they affect the core system behavior.`,
     filesToReview: ["server/config.ts", "server/index.ts"],
     choices: [
       { label: "Keep changes", action: "keep" },

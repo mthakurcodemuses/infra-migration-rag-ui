@@ -39,6 +39,10 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
   const handleReviewFiles = (files: string[]) => {
     setOpenFiles(prev => {
       const newFiles = files.filter(f => !prev.some(p => p.path === f));
+      if (newFiles.length === 0) {
+        // If all files are already open, just make the last one active
+        return prev.map((f, i) => ({ ...f, active: i === prev.length - 1 }));
+      }
       return [
         ...prev.map(f => ({ ...f, active: false })),
         ...newFiles.map((f, i) => ({ path: f, active: i === newFiles.length - 1 }))
@@ -124,6 +128,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
           variant="default"
           onClick={() => saveFilesMutation.mutate()}
           disabled={saveFilesMutation.isPending || !allChangesReviewed}
+          className="bg-green-500 hover:bg-green-600 text-white"
         >
           Save & Exit
         </Button>

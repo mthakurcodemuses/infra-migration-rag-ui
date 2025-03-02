@@ -86,7 +86,10 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
     await reviewActionMutation.mutateAsync({ reviewId, action });
   };
 
-  const toggleExpand = (reviewId: string) => {
+  const toggleExpand = (reviewId: string, event: React.MouseEvent) => {
+    // Stop propagation to prevent double-toggling
+    event.stopPropagation();
+
     const newExpanded = new Set(Array.from(expandedReviews));
     if (newExpanded.has(reviewId)) {
       newExpanded.delete(reviewId);
@@ -137,7 +140,7 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
                       ? "border-green-500/50"
                       : "border-orange-500/50 hover:border-orange-500"
                   )}
-                  onClick={() => toggleExpand(review.id)}
+                  onClick={(e) => toggleExpand(review.id, e)}
                 >
                   {/* Expand/Collapse Icon */}
                   <div className="flex items-center gap-2">
@@ -179,11 +182,13 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
                     </div>
 
                     {/* Description Section */}
-                    <div className="p-4">
-                      <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap bg-muted/50 p-4 rounded-md border border-border/50 overflow-x-auto">
-                        {review.description}
-                      </pre>
-                    </div>
+                    <ScrollArea className="h-[200px]">
+                      <div className="p-4">
+                        <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap bg-muted/50 p-4 rounded-md border border-border/50">
+                          {review.description}
+                        </pre>
+                      </div>
+                    </ScrollArea>
 
                     {/* Files to Review Section */}
                     {review.filesToReview?.length > 0 && (
@@ -212,7 +217,7 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleAction(review.id, 'remove')}
-                                className="min-w-[120px]"
+                                className="min-w-[120px] hover:bg-red-600 hover:text-white border-red-500 text-red-500"
                                 disabled={reviewActionMutation.isPending}
                               >
                                 Remove changes
