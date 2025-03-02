@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocket, WebSocketServer } from "ws";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join, resolve } from "path";
 
@@ -31,8 +30,7 @@ const mockReviews: ReviewMessage[] = [
     title: "VPE endpoint module has following changes",
     description: "IP address = 10.10.10.10\ndebugging logs = enabled",
     choices: [
-      { label: "Ignore", action: "ignore" },
-      { label: "Apply", action: "apply" }
+      { label: "Proceed to next change", action: "completed" }
     ]
   },
   {
@@ -42,8 +40,7 @@ const mockReviews: ReviewMessage[] = [
     title: "RDS Oracle module has below changes",
     description: "module \"rds-oracle\"\nOracle backup = enabled",
     choices: [
-      { label: "Ignore", action: "ignore" },
-      { label: "Apply", action: "apply" }
+      { label: "Proceed to next change", action: "completed" }
     ]
   }
 ];
@@ -84,11 +81,6 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/files/content", (req, res) => {
     const { path } = req.query;
 
-    // Log the request details
-    console.log("Request received:");
-    console.log("Query parameters:", req.query);
-    console.log("Path parameter:", path);
-
     if (!path || typeof path !== "string") {
       return res.status(400).json({ error: "Path parameter is required" });
     }
@@ -117,51 +109,12 @@ export function registerRoutes(app: Express): Server {
       return res.status(404).json({ error: "Review not found" });
     }
 
-    // Here you would handle the action (ignore/apply) for the specific review
-    console.log(`Handling action ${action} for review ${id}`);
+    // Here you would handle the action for the specific review
+    console.log(`Handling review completion for review ${id}`);
 
     res.json({ success: true });
   });
 
   const server = createServer(app);
-  
-  // WebSocket server setup with proper upgrade handling
-  const wss = new WebSocketServer({ noServer: true });
-
-  // Handle upgrade manually to avoid conflicts with Vite
-  server.on('upgrade', (request, socket, head) => {
-    const protocol = request.headers['sec-websocket-protocol'];
-
-    // Skip Vite HMR connections
-    if (protocol === 'vite-hmr') {
-      return;
-    }
-
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
-    });
-  });
-
-  wss.on("connection", (ws: WebSocket) => {
-    // Send initial connection message
-    ws.send(JSON.stringify({
-      type: "system",
-      content: "Connected to IDE chat"
-    }));
-
-    ws.on("message", (data: string) => {
-      try {
-        const message = JSON.parse(data);
-        // Echo back the message for now
-        ws.send(JSON.stringify({
-          type: "response",
-          content: `Received: ${message.content}`
-        }));
-      } catch (error) {
-        console.error("Failed to process WebSocket message:", error);
-      }
-    });
-  });
-  
   return server;
 }

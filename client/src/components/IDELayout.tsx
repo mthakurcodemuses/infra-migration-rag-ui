@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { FileExplorer } from "./FileExplorer";
 import { MonacoEditor } from "./MonacoEditor";
-import { ChatPanel } from "./ChatPanel";
+import { ReviewPanel } from "./ReviewPanel";
 
 export function IDELayout() {
   const [selectedFile, setSelectedFile] = useState<string>("");
@@ -16,7 +16,7 @@ export function IDELayout() {
       <ResizableHandle />
 
       <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
-        <ChatPanel />
+        <ReviewPanel />
       </ResizablePanel>
 
       <ResizableHandle />
