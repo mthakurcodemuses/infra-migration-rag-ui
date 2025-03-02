@@ -87,7 +87,7 @@ export function MonacoEditor({ files, onCloseFile, onFileChange }: MonacoEditorP
   };
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col overflow-hidden">
       {/* Tabs */}
       <div className="flex border-b border-border overflow-x-auto">
         {files.map((file) => (
@@ -116,7 +116,7 @@ export function MonacoEditor({ files, onCloseFile, onFileChange }: MonacoEditorP
       </div>
 
       {/* Editor */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         {activeFile && (
           <DiffEditor
             height="100%"

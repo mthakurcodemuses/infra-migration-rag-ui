@@ -115,11 +115,11 @@ export function FileExplorer({ onFileSelect }: { onFileSelect: (path: string) =>
   }
 
   return (
-    <div className="h-full bg-background border-r border-border">
+    <div className="h-full flex flex-col bg-background border-r border-border">
       <div className="p-2 border-b border-border">
         <h2 className="text-sm font-semibold px-2">Files</h2>
       </div>
-      <ScrollArea className="h-[calc(100%-2.5rem)]">
+      <ScrollArea className="flex-1">
         <div className="p-2">
           {fileTree?.map((node) => renderNode(node))}
         </div>

@@ -78,15 +78,15 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
   });
 
   return (
-    <div className="flex flex-col h-full">
-      <ResizablePanelGroup direction="horizontal" className="flex-1">
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={25}>
+    <div className="flex flex-col h-full overflow-hidden">
+      <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden">
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={25} className="overflow-hidden">
           <FileExplorer onFileSelect={handleFileSelect} />
         </ResizablePanel>
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={30} className="overflow-hidden">
           <ReviewPanel
             mode={mode}
             onReviewFiles={handleReviewFiles}
@@ -96,7 +96,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={55}>
+        <ResizablePanel defaultSize={55} className="overflow-hidden">
           {openFiles.length > 0 ? (
             <MonacoEditor
               files={openFiles}
