@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { readFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "fs";
 import { join, resolve } from "path";
 
 interface FileNode {
@@ -113,6 +113,24 @@ export function registerRoutes(app: Express): Server {
     console.log(`Handling review completion for review ${id}`);
 
     res.json({ success: true });
+  });
+
+  // Add new save endpoint
+  app.post("/api/files/save", (req, res) => {
+    const { path, content } = req.body;
+
+    if (!path || typeof path !== "string" || !content || typeof content !== "string") {
+      return res.status(400).json({ error: "Path and content parameters are required" });
+    }
+
+    try {
+      const fullPath = resolve(path).replace(/^(\.\.[\/\\])+/, '');
+      writeFileSync(fullPath, content, "utf-8");
+      res.json({ success: true });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ error: `Failed to save file: ${err.message}` });
+    }
   });
 
   const server = createServer(app);
