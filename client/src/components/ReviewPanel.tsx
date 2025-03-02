@@ -25,9 +25,10 @@ interface ReviewMessage {
 interface ReviewPanelProps {
   mode: "automated" | "manual";
   onReviewFiles: (files: string[]) => void;
+  onReviewComplete: () => void;
 }
 
-export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
+export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPanelProps) {
   const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
 
@@ -73,6 +74,13 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
       }
     }
   }, [reviews, completedReviews, onReviewFiles]);
+
+  // Watch for all reviews being completed
+  useEffect(() => {
+    if (reviews.length > 0 && reviews.every(r => completedReviews.has(r.id))) {
+      onReviewComplete();
+    }
+  }, [reviews, completedReviews, onReviewComplete]);
 
   const handleAction = async (reviewId: string, action: string) => {
     await reviewActionMutation.mutateAsync({ reviewId, action });

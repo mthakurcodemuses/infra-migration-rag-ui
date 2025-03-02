@@ -12,6 +12,7 @@ import { useState } from "react";
 
 export function HomePage() {
   const [mode, setMode] = useState<"automated" | "manual" | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -26,7 +27,7 @@ export function HomePage() {
                 There are some automated changes that need to be reviewed.
                 Please review these changes by clicking the link below.
               </p>
-              <Dialog>
+              <Dialog open={dialogOpen && mode === "automated"} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
                     variant="link" 
@@ -37,7 +38,7 @@ export function HomePage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh]">
-                  {mode === "automated" && <IDELayout mode="automated" />}
+                  {mode === "automated" && <IDELayout mode="automated" onClose={() => setDialogOpen(false)} />}
                 </DialogContent>
               </Dialog>
             </div>
@@ -53,7 +54,7 @@ export function HomePage() {
               <p className="text-muted-foreground mb-4">
                 Please click the link below to apply changes manually.
               </p>
-              <Dialog>
+              <Dialog open={dialogOpen && mode === "manual"} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
                     variant="link" 
@@ -64,7 +65,7 @@ export function HomePage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh]">
-                  {mode === "manual" && <IDELayout mode="manual" />}
+                  {mode === "manual" && <IDELayout mode="manual" onClose={() => setDialogOpen(false)} />}
                 </DialogContent>
               </Dialog>
             </div>

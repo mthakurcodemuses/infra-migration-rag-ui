@@ -20,6 +20,7 @@ interface IDELayoutProps {
 export function IDELayout({ mode, onClose }: IDELayoutProps) {
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
   const [modifiedFiles, setModifiedFiles] = useState<Record<string, string>>({});
+  const [allChangesReviewed, setAllChangesReviewed] = useState(false);
 
   const handleFileSelect = (filePath: string) => {
     setOpenFiles(prev => {
@@ -66,7 +67,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
   const saveFilesMutation = useMutation({
     mutationFn: async () => {
       // Save all modified files
-      const savePromises = Object.entries(modifiedFiles).map(([path, content]) => 
+      const savePromises = Object.entries(modifiedFiles).map(([path, content]) =>
         apiRequest('POST', '/api/files/save', { path, content })
       );
       await Promise.all(savePromises);
@@ -86,9 +87,10 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
         <ResizableHandle />
 
         <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
-          <ReviewPanel 
-            mode={mode} 
-            onReviewFiles={handleReviewFiles} 
+          <ReviewPanel
+            mode={mode}
+            onReviewFiles={handleReviewFiles}
+            onReviewComplete={() => setAllChangesReviewed(true)}
           />
         </ResizablePanel>
 
@@ -96,7 +98,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
 
         <ResizablePanel defaultSize={55}>
           {openFiles.length > 0 ? (
-            <MonacoEditor 
+            <MonacoEditor
               files={openFiles}
               onCloseFile={handleCloseFile}
               onFileChange={handleFileChange}
@@ -121,7 +123,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
         <Button
           variant="default"
           onClick={() => saveFilesMutation.mutate()}
-          disabled={saveFilesMutation.isPending || Object.keys(modifiedFiles).length === 0}
+          disabled={saveFilesMutation.isPending || !allChangesReviewed}
         >
           Save & Exit
         </Button>
