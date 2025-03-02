@@ -153,7 +153,7 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
                       {isCompleted && (
                         <span className="flex items-center gap-1 text-xs text-green-500 shrink-0">
                           <Check className="h-3 w-3" />
-                          Reviewed
+                          {mode === "automated" ? "Decision applied" : "Reviewed"}
                         </span>
                       )}
                     </div>
@@ -194,20 +194,48 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
                     {/* Actions Section */}
                     {!isCompleted && (
                       <div className="p-4 bg-card border-t border-border/50">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => handleAction(review.id, 'completed')}
-                            className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
-                            disabled={reviewActionMutation.isPending}
-                          >
-                            <Check className="h-3.5 w-3.5" />
-                            <span className="text-xs font-medium">
-                              I've reviewed and made appropriate changes
-                            </span>
-                          </Button>
-                        </div>
+                        {mode === "automated" ? (
+                          <>
+                            <p className="text-sm text-muted-foreground mb-3">
+                              Please make a selection for this change
+                            </p>
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAction(review.id, 'remove')}
+                                className="min-w-[120px]"
+                                disabled={reviewActionMutation.isPending}
+                              >
+                                Remove changes
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleAction(review.id, 'keep')}
+                                className="min-w-[120px] bg-green-500 hover:bg-green-600 text-white"
+                                disabled={reviewActionMutation.isPending}
+                              >
+                                Keep changes
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleAction(review.id, 'completed')}
+                              className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
+                              disabled={reviewActionMutation.isPending}
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              <span className="text-xs font-medium">
+                                I've reviewed and made appropriate changes
+                              </span>
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

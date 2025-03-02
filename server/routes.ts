@@ -27,23 +27,25 @@ const mockReviews: ReviewMessage[] = [
   {
     id: "1",
     type: "change",
-    filePath: "vpe-endpoint",
-    title: "VPE endpoint module has following changes",
-    description: "IP address = 10.10.10.10\ndebugging logs = enabled",
-    filesToReview: ["server/config.ts", "server/vpe.ts"],
+    filePath: "server/config.ts",
+    title: "Configuration changes detected",
+    description: "New environment variables added:\nDEBUG_MODE=true\nLOG_LEVEL=verbose",
+    filesToReview: ["server/config.ts", "server/index.ts"],
     choices: [
-      { label: "Proceed to next change", action: "completed" }
+      { label: "Keep changes", action: "keep" },
+      { label: "Remove changes", action: "remove" }
     ]
   },
   {
     id: "2",
-    type: "manual",
-    filePath: "rds-oracle",
-    title: "RDS Oracle module has below changes",
-    description: "module \"rds-oracle\"\nOracle backup = enabled",
-    filesToReview: ["server/db/oracle.ts", "server/backup/config.ts"],
+    type: "change",
+    filePath: "client/src/components/MonacoEditor.tsx",
+    title: "Editor configuration update",
+    description: "Monaco editor configuration changes:\n- Added TypeScript support\n- Updated theme settings",
+    filesToReview: ["client/src/components/MonacoEditor.tsx", "client/src/lib/editorConfig.ts"],
     choices: [
-      { label: "Proceed to next change", action: "completed" }
+      { label: "Keep changes", action: "keep" },
+      { label: "Remove changes", action: "remove" }
     ]
   }
 ];
