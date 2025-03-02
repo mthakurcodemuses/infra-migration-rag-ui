@@ -25,16 +25,25 @@ export function MonacoEditor({
   onFileChange,
   onTabSelect,
 }: MonacoEditorProps) {
-  const [editedContents, setEditedContents] = useState<Record<string, string>>(
-    {},
-  );
+  const [editedContents, setEditedContents] = useState<Record<string, string>>({});
 
   const activeFile = files.find((f) => f.active);
 
-  const { data: fileContent, error } = useQuery<string>({
-    queryKey: ["/api/files/content", { path: activeFile?.path }],
+  const { data: fileContent } = useQuery<string>({
+    queryKey: ["/api/files/content", activeFile?.path],
     enabled: !!activeFile?.path,
   });
+
+  // Handle content changes
+  const handleEditorChange: OnChange = (value) => {
+    if (value !== undefined && activeFile) {
+      setEditedContents((prev) => ({
+        ...prev,
+        [activeFile.path]: value,
+      }));
+      onFileChange(activeFile.path, value);
+    }
+  };
 
   // Detect language based on file extension
   const getLanguage = (filePath: string) => {
@@ -54,44 +63,6 @@ export function MonacoEditor({
     };
 
     return languageMap[extension] || "plaintext";
-  };
-
-  // Handle editor mounting
-  const handleEditorDidMount: OnMount = (editor, monaco) => {
-    // Enable basic language features
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: false,
-      noSyntaxValidation: false,
-    });
-
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: false,
-      noSyntaxValidation: false,
-    });
-
-    // Configure JavaScript and TypeScript compilation options
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      target: monaco.languages.typescript.ScriptTarget.Latest,
-      allowNonTsExtensions: true,
-    });
-
-    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-      target: monaco.languages.typescript.ScriptTarget.Latest,
-      allowNonTsExtensions: true,
-    });
-
-    editor.focus();
-  };
-
-  // Handle content changes
-  const handleEditorChange: OnChange = (value) => {
-    if (value !== undefined && activeFile) {
-      setEditedContents((prev) => ({
-        ...prev,
-        [activeFile.path]: value,
-      }));
-      onFileChange(activeFile.path, value);
-    }
   };
 
   return (
@@ -130,9 +101,9 @@ export function MonacoEditor({
         {activeFile && (
           <DiffEditor
             height="100%"
-            theme="vs-dark"
+            theme="vs-light"
             language={getLanguage(activeFile.path)}
-            original={error ? `Error loading file: ${error}` : fileContent}
+            original={fileContent}
             modified={editedContents[activeFile.path] || fileContent}
             options={{
               renderSideBySide: false,
@@ -144,21 +115,6 @@ export function MonacoEditor({
               folding: true,
               automaticLayout: true,
             }}
-            loading={
-              <div className="flex items-center justify-center h-full">
-                <p className="text-lg">Loading editor...</p>
-              </div>
-            }
-            beforeMount={(monaco) => {
-              monaco.editor.defineTheme("custom-dark", {
-                base: "vs-dark",
-                inherit: true,
-                rules: [],
-                colors: {},
-              });
-            }}
-            onMount={handleEditorDidMount}
-            onChange={handleEditorChange}
           />
         )}
       </div>

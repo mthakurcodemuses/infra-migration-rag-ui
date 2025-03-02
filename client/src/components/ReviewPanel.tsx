@@ -33,7 +33,7 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
 
   const { data: reviews = [] } = useQuery<ReviewMessage[]>({
-    queryKey: ["/api/reviews", { mode }],
+    queryKey: ["/api/reviews"],
   });
 
   const reviewActionMutation = useMutation({
@@ -181,14 +181,17 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
                       </h3>
                     </div>
 
-                    {/* Description Section */}
-                    <ScrollArea className="h-[200px]">
-                      <div className="p-4">
-                        <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap bg-muted/50 p-4 rounded-md border border-border/50">
-                          {review.description}
-                        </pre>
-                      </div>
-                    </ScrollArea>
+                    {/* Description Section with Scroll Indicator */}
+                    <div className="relative">
+                      <ScrollArea className="h-[200px] overflow-y-auto">
+                        <div className="p-4">
+                          <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap bg-muted/50 p-4 rounded-md border border-border/50">
+                            {review.description}
+                          </pre>
+                        </div>
+                      </ScrollArea>
+                      <div className="absolute right-2 bottom-2 bg-gradient-to-t from-background to-transparent w-2 h-8 rounded-full opacity-50" />
+                    </div>
 
                     {/* Files to Review Section */}
                     {review.filesToReview?.length > 0 && (
