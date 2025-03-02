@@ -9,7 +9,11 @@ export interface OpenFile {
   active: boolean;
 }
 
-export function IDELayout() {
+interface IDELayoutProps {
+  mode: "automated" | "manual";
+}
+
+export function IDELayout({ mode }: IDELayoutProps) {
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
 
   const handleFileSelect = (filePath: string) => {
@@ -56,7 +60,10 @@ export function IDELayout() {
       <ResizableHandle />
 
       <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
-        <ReviewPanel onReviewFiles={handleReviewFiles} />
+        <ReviewPanel 
+          mode={mode} 
+          onReviewFiles={handleReviewFiles} 
+        />
       </ResizablePanel>
 
       <ResizableHandle />

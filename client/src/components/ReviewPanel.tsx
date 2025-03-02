@@ -22,15 +22,16 @@ interface ReviewMessage {
 }
 
 interface ReviewPanelProps {
+  mode: "automated" | "manual";
   onReviewFiles: (files: string[]) => void;
 }
 
-export function ReviewPanel({ onReviewFiles }: ReviewPanelProps) {
+export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
   const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
 
   const { data: reviews = [] } = useQuery<ReviewMessage[]>({
-    queryKey: ["/api/reviews"],
+    queryKey: ["/api/reviews", mode],
   });
 
   // Auto-expand first unanswered review and open its files
@@ -92,6 +93,9 @@ export function ReviewPanel({ onReviewFiles }: ReviewPanelProps) {
         <div className="flex items-center gap-2 px-2">
           <AlertCircle className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold">Review Changes</h2>
+          <span className="text-xs text-muted-foreground">
+            ({mode === "automated" ? "Automated" : "Manual"})
+          </span>
         </div>
       </div>
 
