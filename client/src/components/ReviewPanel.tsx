@@ -17,10 +17,15 @@ interface ReviewMessage {
   filePath: string;
   title: string;
   description: string;
+  filesToReview: string[];
   choices: ReviewChoice[];
 }
 
-export function ReviewPanel() {
+interface ReviewPanelProps {
+  onReviewFiles: (files: string[]) => void;
+}
+
+export function ReviewPanel({ onReviewFiles }: ReviewPanelProps) {
   const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
 
@@ -28,15 +33,16 @@ export function ReviewPanel() {
     queryKey: ["/api/reviews"],
   });
 
-  // Auto-expand first unanswered review
+  // Auto-expand first unanswered review and open its files
   useEffect(() => {
     if (reviews.length > 0) {
       const firstUnansweredReview = reviews.find(r => !completedReviews.has(r.id));
       if (firstUnansweredReview) {
         setExpandedReviews(new Set([firstUnansweredReview.id]));
+        onReviewFiles(firstUnansweredReview.filesToReview);
       }
     }
-  }, [reviews, completedReviews]);
+  }, [reviews, completedReviews, onReviewFiles]);
 
   const handleReviewComplete = async (reviewId: string) => {
     try {
@@ -52,11 +58,12 @@ export function ReviewPanel() {
       const newExpanded = new Set(Array.from(expandedReviews));
       newExpanded.delete(reviewId);
 
-      // Auto-expand next unanswered review
+      // Auto-expand next unanswered review and open its files
       const currentIndex = reviews.findIndex(r => r.id === reviewId);
       const nextUnanswered = reviews.slice(currentIndex + 1).find(r => !completedReviews.has(r.id));
       if (nextUnanswered) {
         newExpanded.add(nextUnanswered.id);
+        onReviewFiles(nextUnanswered.filesToReview);
       }
 
       setExpandedReviews(newExpanded);
@@ -71,6 +78,10 @@ export function ReviewPanel() {
       newExpanded.delete(reviewId);
     } else {
       newExpanded.add(reviewId);
+      const review = reviews.find(r => r.id === reviewId);
+      if (review) {
+        onReviewFiles(review.filesToReview);
+      }
     }
     setExpandedReviews(newExpanded);
   };

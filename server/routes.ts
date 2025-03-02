@@ -15,13 +15,14 @@ interface ReviewMessage {
   filePath: string;
   title: string;
   description: string;
+  filesToReview: string[];  // Add list of files to review
   choices: {
     label: string;
     action: string;
   }[];
 }
 
-// Mock review messages for demonstration
+// Update mock data to include filesToReview
 const mockReviews: ReviewMessage[] = [
   {
     id: "1",
@@ -29,6 +30,7 @@ const mockReviews: ReviewMessage[] = [
     filePath: "vpe-endpoint",
     title: "VPE endpoint module has following changes",
     description: "IP address = 10.10.10.10\ndebugging logs = enabled",
+    filesToReview: ["server/config.ts", "server/vpe.ts"],
     choices: [
       { label: "Proceed to next change", action: "completed" }
     ]
@@ -39,6 +41,7 @@ const mockReviews: ReviewMessage[] = [
     filePath: "rds-oracle",
     title: "RDS Oracle module has below changes",
     description: "module \"rds-oracle\"\nOracle backup = enabled",
+    filesToReview: ["server/db/oracle.ts", "server/backup/config.ts"],
     choices: [
       { label: "Proceed to next change", action: "completed" }
     ]
