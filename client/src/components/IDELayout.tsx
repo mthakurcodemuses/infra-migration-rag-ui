@@ -21,22 +21,16 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
   const [modifiedFiles, setModifiedFiles] = useState<Record<string, string>>({});
   const [allChangesReviewed, setAllChangesReviewed] = useState(false);
-  const [activeFileIndex, setActiveFileIndex] = useState(0); // Added state for active tab
 
   const handleFileSelect = (filePath: string) => {
     setOpenFiles(prev => {
       const index = prev.findIndex(f => f.path === filePath);
       if (index !== -1) {
-        return prev.map((f, i) => ({ ...f, active: i === index }));
+        return prev.map((f, i) => ({ ...f, active: f.path === filePath }));
       }
       return [...prev.map(f => ({ ...f, active: false })), { path: filePath, active: true }];
     });
-    setActiveFileIndex(prev => {
-        const index = openFiles.findIndex(f => f.path === filePath);
-        return index === -1 ? openFiles.length : index;
-    });
   };
-
 
   const handleReviewFiles = (files: string[]) => {
     setOpenFiles(prev => {
@@ -49,19 +43,16 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
         ...newFiles.map((f, i) => ({ path: f, active: i === newFiles.length - 1 }))
       ];
     });
-    setActiveFileIndex(openFiles.length -1);
   };
 
   const handleCloseFile = (filePath: string) => {
     setOpenFiles(prev => {
       const filtered = prev.filter(f => f.path !== filePath);
-      const activeIndex = prev.findIndex(f => f.path === filePath);
-      if (activeIndex !== -1 && filtered.length > 0) {
-        const newActiveIndex = Math.min(activeIndex, filtered.length - 1);
-        filtered[newActiveIndex].active = true;
-        setActiveFileIndex(newActiveIndex);
-      } else if (filtered.length === 0) {
-          setActiveFileIndex(-1);
+      if (filtered.length > 0) {
+        const wasActive = prev.find(f => f.path === filePath)?.active;
+        if (wasActive) {
+          filtered[filtered.length - 1].active = true;
+        }
       }
       return filtered;
     });
@@ -72,6 +63,10 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
       ...prev,
       [path]: content
     }));
+  };
+
+  const handleTabSelect = (path: string) => {
+    setOpenFiles(prev => prev.map(f => ({ ...f, active: f.path === path })));
   };
 
   const saveFilesMutation = useMutation({
@@ -111,7 +106,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
               files={openFiles}
               onCloseFile={handleCloseFile}
               onFileChange={handleFileChange}
-              activeFileIndex={activeFileIndex} // Pass active index
+              onTabSelect={handleTabSelect}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">

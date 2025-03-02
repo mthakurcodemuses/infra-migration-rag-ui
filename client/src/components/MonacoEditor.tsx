@@ -16,12 +16,20 @@ interface MonacoEditorProps {
   files: OpenFile[];
   onCloseFile: (path: string) => void;
   onFileChange: (path: string, content: string) => void;
+  onTabSelect: (path: string) => void;
 }
 
-export function MonacoEditor({ files, onCloseFile, onFileChange }: MonacoEditorProps) {
-  const [editedContents, setEditedContents] = useState<Record<string, string>>({});
+export function MonacoEditor({
+  files,
+  onCloseFile,
+  onFileChange,
+  onTabSelect,
+}: MonacoEditorProps) {
+  const [editedContents, setEditedContents] = useState<Record<string, string>>(
+    {},
+  );
 
-  const activeFile = files.find(f => f.active);
+  const activeFile = files.find((f) => f.active);
 
   const { data: fileContent, error } = useQuery<string>({
     queryKey: ["/api/files/content", { path: activeFile?.path }],
@@ -78,9 +86,9 @@ export function MonacoEditor({ files, onCloseFile, onFileChange }: MonacoEditorP
   // Handle content changes
   const handleEditorChange: OnChange = (value) => {
     if (value !== undefined && activeFile) {
-      setEditedContents(prev => ({
+      setEditedContents((prev) => ({
         ...prev,
-        [activeFile.path]: value
+        [activeFile.path]: value,
       }));
       onFileChange(activeFile.path, value);
     }
@@ -96,21 +104,10 @@ export function MonacoEditor({ files, onCloseFile, onFileChange }: MonacoEditorP
             className={cn(
               "group flex items-center gap-2 px-4 py-2 border-r border-border cursor-pointer",
               "hover:bg-accent/50 transition-colors",
-              file.active && "bg-accent text-accent-foreground font-medium border-b-2 border-b-primary"
+              file.active &&
+                "bg-accent text-accent-foreground font-medium border-b-2 border-b-primary",
             )}
-            onClick={() => {
-                //Added this to handle tab clicks
-                if (!file.active) {
-                    //Find the currently active file and set active to false
-                    const currentlyActiveFile = files.find(f => f.active);
-                    if (currentlyActiveFile) {
-                        currentlyActiveFile.active = false;
-                    }
-                    file.active = true;
-                    // Trigger a rerender by setting the state to a new object
-                    setEditedContents({...editedContents});
-                }
-            }}
+            onClick={() => onTabSelect(file.path)}
           >
             <span className="text-sm truncate max-w-[200px]">
               {file.path.split("/").pop()}
