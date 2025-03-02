@@ -31,7 +31,7 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
 
   const { data: reviews = [] } = useQuery<ReviewMessage[]>({
-    queryKey: ["/api/reviews", mode],
+    queryKey: ["/api/reviews", { mode }],
   });
 
   // Auto-expand first unanswered review and open its files
@@ -40,17 +40,19 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
       const firstUnansweredReview = reviews.find(r => !completedReviews.has(r.id));
       if (firstUnansweredReview) {
         setExpandedReviews(new Set([firstUnansweredReview.id]));
-        onReviewFiles(firstUnansweredReview.filesToReview);
+        if (firstUnansweredReview.filesToReview?.length > 0) {
+          onReviewFiles(firstUnansweredReview.filesToReview);
+        }
       }
     }
   }, [reviews, completedReviews, onReviewFiles]);
 
-  const handleReviewComplete = async (reviewId: string) => {
+  const handleAction = async (reviewId: string, action: string) => {
     try {
       await fetch(`/api/reviews/${reviewId}/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'completed' })
+        body: JSON.stringify({ action })
       });
 
       setCompletedReviews(new Set([...Array.from(completedReviews), reviewId]));
@@ -64,12 +66,14 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
       const nextUnanswered = reviews.slice(currentIndex + 1).find(r => !completedReviews.has(r.id));
       if (nextUnanswered) {
         newExpanded.add(nextUnanswered.id);
-        onReviewFiles(nextUnanswered.filesToReview);
+        if (nextUnanswered.filesToReview?.length > 0) {
+          onReviewFiles(nextUnanswered.filesToReview);
+        }
       }
 
       setExpandedReviews(newExpanded);
     } catch (error) {
-      console.error('Failed to handle review completion:', error);
+      console.error('Failed to handle review action:', error);
     }
   };
 
@@ -80,7 +84,7 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
     } else {
       newExpanded.add(reviewId);
       const review = reviews.find(r => r.id === reviewId);
-      if (review) {
+      if (review?.filesToReview?.length > 0) {
         onReviewFiles(review.filesToReview);
       }
     }
@@ -172,6 +176,20 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
                       </pre>
                     </div>
 
+                    {/* Files to Review Section */}
+                    {review.filesToReview?.length > 0 && (
+                      <div className="p-4 border-t border-border/50">
+                        <h4 className="text-sm font-medium mb-2">Files to Review:</h4>
+                        <div className="space-y-1">
+                          {review.filesToReview.map((file) => (
+                            <div key={file} className="text-xs font-mono text-muted-foreground">
+                              {file}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Actions Section */}
                     {!isCompleted && (
                       <div className="p-4 bg-card border-t border-border/50">
@@ -179,7 +197,7 @@ export function ReviewPanel({ mode, onReviewFiles }: ReviewPanelProps) {
                           <Button
                             size="sm"
                             variant="default"
-                            onClick={() => handleReviewComplete(review.id)}
+                            onClick={() => handleAction(review.id, 'completed')}
                             className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
                           >
                             <Check className="h-3.5 w-3.5" />
