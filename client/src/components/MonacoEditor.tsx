@@ -96,8 +96,21 @@ export function MonacoEditor({ files, onCloseFile, onFileChange }: MonacoEditorP
             className={cn(
               "group flex items-center gap-2 px-4 py-2 border-r border-border cursor-pointer",
               "hover:bg-accent/50 transition-colors",
-              file.active && "bg-accent"
+              file.active && "bg-accent text-accent-foreground font-medium border-b-2 border-b-primary"
             )}
+            onClick={() => {
+                //Added this to handle tab clicks
+                if (!file.active) {
+                    //Find the currently active file and set active to false
+                    const currentlyActiveFile = files.find(f => f.active);
+                    if (currentlyActiveFile) {
+                        currentlyActiveFile.active = false;
+                    }
+                    file.active = true;
+                    // Trigger a rerender by setting the state to a new object
+                    setEditedContents({...editedContents});
+                }
+            }}
           >
             <span className="text-sm truncate max-w-[200px]">
               {file.path.split("/").pop()}

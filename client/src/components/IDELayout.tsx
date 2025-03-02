@@ -21,26 +21,27 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
   const [modifiedFiles, setModifiedFiles] = useState<Record<string, string>>({});
   const [allChangesReviewed, setAllChangesReviewed] = useState(false);
+  const [activeFileIndex, setActiveFileIndex] = useState(0); // Added state for active tab
 
   const handleFileSelect = (filePath: string) => {
     setOpenFiles(prev => {
-      // If file is already open, make it active
-      if (prev.some(f => f.path === filePath)) {
-        return prev.map(f => ({
-          ...f,
-          active: f.path === filePath
-        }));
+      const index = prev.findIndex(f => f.path === filePath);
+      if (index !== -1) {
+        return prev.map((f, i) => ({ ...f, active: i === index }));
       }
-      // Otherwise, add it to the list and make it active
       return [...prev.map(f => ({ ...f, active: false })), { path: filePath, active: true }];
     });
+    setActiveFileIndex(prev => {
+        const index = openFiles.findIndex(f => f.path === filePath);
+        return index === -1 ? openFiles.length : index;
+    });
   };
+
 
   const handleReviewFiles = (files: string[]) => {
     setOpenFiles(prev => {
       const newFiles = files.filter(f => !prev.some(p => p.path === f));
       if (newFiles.length === 0) {
-        // If all files are already open, just make the last one active
         return prev.map((f, i) => ({ ...f, active: i === prev.length - 1 }));
       }
       return [
@@ -48,14 +49,19 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
         ...newFiles.map((f, i) => ({ path: f, active: i === newFiles.length - 1 }))
       ];
     });
+    setActiveFileIndex(openFiles.length -1);
   };
 
   const handleCloseFile = (filePath: string) => {
     setOpenFiles(prev => {
       const filtered = prev.filter(f => f.path !== filePath);
-      // If we closed the active file, activate the last file in the list
-      if (prev.find(f => f.path === filePath)?.active && filtered.length > 0) {
-        filtered[filtered.length - 1].active = true;
+      const activeIndex = prev.findIndex(f => f.path === filePath);
+      if (activeIndex !== -1 && filtered.length > 0) {
+        const newActiveIndex = Math.min(activeIndex, filtered.length - 1);
+        filtered[newActiveIndex].active = true;
+        setActiveFileIndex(newActiveIndex);
+      } else if (filtered.length === 0) {
+          setActiveFileIndex(-1);
       }
       return filtered;
     });
@@ -70,7 +76,6 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
 
   const saveFilesMutation = useMutation({
     mutationFn: async () => {
-      // Save all modified files
       const savePromises = Object.entries(modifiedFiles).map(([path, content]) =>
         apiRequest('POST', '/api/files/save', { path, content })
       );
@@ -106,6 +111,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
               files={openFiles}
               onCloseFile={handleCloseFile}
               onFileChange={handleFileChange}
+              activeFileIndex={activeFileIndex} // Pass active index
             />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
