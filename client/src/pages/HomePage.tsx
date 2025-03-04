@@ -11,7 +11,7 @@ export function HomePage() {
   const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());
 
   const handleReviewComplete = (reviewType: "automated" | "manual") => {
-    setCompletedReviews(prev => new Set([...prev, reviewType]));
+    setCompletedReviews(prev => new Set(Array.from(prev).concat(reviewType)));
     setDialogOpen(false);
   };
 
@@ -58,7 +58,7 @@ export function HomePage() {
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh]">
+                <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] bg-amber-50/95">
                   {mode === "automated" && (
                     <IDELayout
                       mode="automated"
@@ -112,7 +112,7 @@ export function HomePage() {
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh]">
+                <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] bg-amber-50/95">
                   {mode === "manual" && (
                     <IDELayout
                       mode="manual"

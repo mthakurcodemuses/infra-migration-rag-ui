@@ -84,7 +84,7 @@ export function IDELayout({ mode, onClose, onSaveComplete }: IDELayoutProps) {
   });
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden bg-amber-50/95">
       <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden">
         <ResizablePanel defaultSize={20} minSize={15} maxSize={25} className="overflow-hidden">
           <FileExplorer onFileSelect={handleFileSelect} />
