@@ -15,9 +15,10 @@ export interface OpenFile {
 interface IDELayoutProps {
   mode: "automated" | "manual";
   onClose?: () => void;
+  onSaveComplete?: () => void;
 }
 
-export function IDELayout({ mode, onClose }: IDELayoutProps) {
+export function IDELayout({ mode, onClose, onSaveComplete }: IDELayoutProps) {
   const [openFiles, setOpenFiles] = useState<OpenFile[]>([]);
   const [modifiedFiles, setModifiedFiles] = useState<Record<string, string>>({});
   const [allChangesReviewed, setAllChangesReviewed] = useState(false);
@@ -77,6 +78,7 @@ export function IDELayout({ mode, onClose }: IDELayoutProps) {
       await Promise.all(savePromises);
     },
     onSuccess: () => {
+      if (onSaveComplete) onSaveComplete();
       if (onClose) onClose();
     }
   });
