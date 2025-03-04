@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { AlertCircle, Check, Clock } from "lucide-react";
+import { AlertCircle, Check, Clock, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { IDELayout } from "@/components/IDELayout";
@@ -50,11 +50,12 @@ export function HomePage() {
               >
                 <DialogTrigger asChild>
                   <Button
-                    variant="link"
-                    className="px-0 font-semibold hover:no-underline"
+                    variant="default"
+                    className="px-4 py-2 font-semibold hover:no-underline bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm group"
                     onClick={() => setMode("automated")}
                   >
-                    Review Automated Changes →
+                    Review Automated Changes
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh]">
@@ -103,11 +104,12 @@ export function HomePage() {
               >
                 <DialogTrigger asChild>
                   <Button
-                    variant="link"
-                    className="px-0 font-semibold hover:no-underline"
+                    variant="default"
+                    className="px-4 py-2 font-semibold hover:no-underline bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm group"
                     onClick={() => setMode("manual")}
                   >
-                    Apply Changes Manually →
+                    Apply Changes Manually
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh]">
