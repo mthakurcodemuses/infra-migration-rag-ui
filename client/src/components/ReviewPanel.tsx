@@ -210,26 +210,20 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
                         {mode === "automated" ? (
                           <>
                             <p className="text-sm text-muted-foreground mb-3">
-                              Please make a selection for this change
+                              Please review the changes and confirm
                             </p>
                             <div className="flex gap-2 justify-end">
                               <Button
                                 size="sm"
-                                variant="outline"
-                                onClick={() => handleAction(review.id, 'remove')}
-                                className="min-w-[120px] hover:bg-red-600 hover:text-white border-red-500 text-red-500"
-                                disabled={reviewActionMutation.isPending}
-                              >
-                                Remove changes
-                              </Button>
-                              <Button
-                                size="sm"
                                 variant="default"
                                 onClick={() => handleAction(review.id, 'keep')}
-                                className="min-w-[120px] bg-green-500 hover:bg-green-600 text-white"
+                                className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
                                 disabled={reviewActionMutation.isPending}
                               >
-                                Keep changes
+                                <Check className="h-3.5 w-3.5" />
+                                <span className="text-xs font-medium">
+                                  I've reviewed and made appropriate changes
+                                </span>
                               </Button>
                             </div>
                           </>

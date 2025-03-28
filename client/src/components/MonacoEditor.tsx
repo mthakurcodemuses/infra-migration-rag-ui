@@ -4,6 +4,7 @@ import {
   DiffEditor,
   OnMount,
   OnChange,
+  DiffOnMount,
   loader,
 } from "@monaco-editor/react";
 import { useQuery } from "@tanstack/react-query";
@@ -56,17 +57,17 @@ export function MonacoEditor({
     return languageMap[extension] || "plaintext";
   };
 
-  // Handle editor mounting
-  const handleEditorDidMount: OnMount = (editor, monaco) => {
-    // Enable basic language features
+  // Handle diff editor mounting
+  const handleDiffEditorDidMount: DiffOnMount = (editor: any, monaco: any) => {
+    // Disable validation errors in diff editor
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: false,
-      noSyntaxValidation: false,
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
     });
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: false,
-      noSyntaxValidation: false,
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
     });
 
     // Configure JavaScript and TypeScript compilation options
@@ -78,6 +79,19 @@ export function MonacoEditor({
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       target: monaco.languages.typescript.ScriptTarget.Latest,
       allowNonTsExtensions: true,
+    });
+
+    // Add change event listener to the modified editor
+    const modifiedEditor = editor.getModifiedEditor();
+    modifiedEditor.onDidChangeModelContent(() => {
+      if (activeFile) {
+        const value = modifiedEditor.getValue();
+        setEditedContents((prev) => ({
+          ...prev,
+          [activeFile.path]: value,
+        }));
+        onFileChange(activeFile.path, value);
+      }
     });
 
     editor.focus();
@@ -157,8 +171,7 @@ export function MonacoEditor({
                 colors: {},
               });
             }}
-            onMount={handleEditorDidMount}
-            onChange={handleEditorChange}
+            onMount={handleDiffEditorDidMount}
           />
         )}
       </div>
