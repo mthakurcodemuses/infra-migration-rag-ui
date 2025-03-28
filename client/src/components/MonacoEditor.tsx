@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Editor,
   DiffEditor,
@@ -26,12 +26,20 @@ export function MonacoEditor({
   onFileChange,
   onTabSelect,
 }: MonacoEditorProps) {
-  const [editedContents, setEditedContents] = useState<Record<string, string>>(
-    {},
-  );
+  const [editedContents, setEditedContents] = useState<Record<string, string>>({});
+  const [currentActivePath, setCurrentActivePath] = useState<string | null>(null);
+  const editorRef = useRef<any>(null);
 
   const activeFile = files.find((f) => f.active);
+  
+  // Keep track of the active file path to detect changes
+  useEffect(() => {
+    if (activeFile && activeFile.path !== currentActivePath) {
+      setCurrentActivePath(activeFile.path);
+    }
+  }, [activeFile, currentActivePath]);
 
+  // Query for file content
   const { data: fileContent, error } = useQuery<string>({
     queryKey: ["/api/files/content", { path: activeFile?.path }],
     enabled: !!activeFile?.path,
@@ -59,6 +67,9 @@ export function MonacoEditor({
 
   // Handle diff editor mounting
   const handleDiffEditorDidMount: DiffOnMount = (editor: any, monaco: any) => {
+    // Store editor reference
+    editorRef.current = editor;
+    
     // Disable validation errors in diff editor
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
@@ -96,6 +107,18 @@ export function MonacoEditor({
 
     editor.focus();
   };
+  
+  // Update editor when activeFile changes
+  useEffect(() => {
+    if (activeFile && editorRef.current) {
+      // Force the editor to update its content when active file changes
+      const editor = editorRef.current;
+      if (editor && activeFile.path !== currentActivePath) {
+        // This will cause the editor to refresh with the new file content
+        editor.getModifiedEditor().focus();
+      }
+    }
+  }, [activeFile, currentActivePath]);
 
   // Handle content changes
   const handleEditorChange: OnChange = (value) => {
@@ -143,6 +166,7 @@ export function MonacoEditor({
       <div className="flex-1 min-h-0">
         {activeFile && (
           <DiffEditor
+            key={activeFile.path} /* Force re-render when file changes */
             height="100%"
             theme="vs-light"
             language={getLanguage(activeFile.path)}

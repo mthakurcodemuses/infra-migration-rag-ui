@@ -96,7 +96,7 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
     } else {
       newExpanded.add(reviewId);
       const review = reviews.find(r => r.id === reviewId);
-      if (review?.filesToReview?.length > 0) {
+      if (review && review.filesToReview && review.filesToReview.length > 0) {
         onReviewFiles(review.filesToReview);
       }
     }
@@ -191,7 +191,7 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
                     </ScrollArea>
 
                     {/* Files to Review Section */}
-                    {review.filesToReview?.length > 0 && (
+                    {review.filesToReview && review.filesToReview.length > 0 && (
                       <div className="p-4 border-t border-border/50">
                         <h4 className="text-sm font-medium mb-2">Files to Review:</h4>
                         <div className="space-y-1">
