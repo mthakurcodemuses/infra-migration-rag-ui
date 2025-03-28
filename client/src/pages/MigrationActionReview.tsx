@@ -5,7 +5,20 @@ import { Button } from "@/components/ui/button";
 import { IDELayout } from "@/components/IDELayout";
 import { useState } from "react";
 
-export function MigrationActionReview() {
+export interface MigrationMessage {
+  pendingMessage: string;
+  completedMessage: string;
+}
+
+export interface MigrationActionReviewProps {
+  automatedChangesMessages: MigrationMessage;
+  manualChangesMessages: MigrationMessage;
+}
+
+export function MigrationActionReview({
+  automatedChangesMessages,
+  manualChangesMessages
+}: MigrationActionReviewProps) {
   const [mode, setMode] = useState<"automated" | "manual" | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());
@@ -38,8 +51,8 @@ export function MigrationActionReview() {
               </div>
               <p className="text-muted-foreground mb-4">
                 {completedReviews.has("automated")
-                  ? "All automated changes have been reviewed and processed."
-                  : "There are some automated changes that need to be reviewed. Please review these changes by clicking the link below."}
+                  ? automatedChangesMessages.completedMessage
+                  : automatedChangesMessages.pendingMessage}
               </p>
               <Dialog
                 open={dialogOpen && mode === "automated"}
@@ -92,8 +105,8 @@ export function MigrationActionReview() {
               </div>
               <p className="text-muted-foreground mb-4">
                 {completedReviews.has("manual")
-                  ? "All manual changes have been reviewed and processed."
-                  : "There are some changes that need to be applied manually. Please click the link below to review and apply those changes."}
+                  ? manualChangesMessages.completedMessage
+                  : manualChangesMessages.pendingMessage}
               </p>
               <Dialog
                 open={dialogOpen && mode === "manual"}

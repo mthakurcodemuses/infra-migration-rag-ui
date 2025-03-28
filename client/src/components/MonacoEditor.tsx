@@ -70,7 +70,24 @@ export function MonacoEditor({
     // Store editor reference
     editorRef.current = editor;
     
-    // Disable validation errors in diff editor
+    // Configure both original and modified editors
+    const originalEditor = editor.getOriginalEditor();
+    const modifEditor = editor.getModifiedEditor();
+    
+    // Configure original editor (read-only)
+    originalEditor.updateOptions({
+      readOnly: true,
+      renderValidationDecorations: "off",
+      minimap: { enabled: false },
+    });
+    
+    // Configure modified editor (editable, no validation errors)
+    modifEditor.updateOptions({
+      renderValidationDecorations: "off",
+      minimap: { enabled: false },
+    });
+    
+    // Disable validation errors in diff editor for both JavaScript and TypeScript
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: true,
@@ -93,10 +110,9 @@ export function MonacoEditor({
     });
 
     // Add change event listener to the modified editor
-    const modifiedEditor = editor.getModifiedEditor();
-    modifiedEditor.onDidChangeModelContent(() => {
+    modifEditor.onDidChangeModelContent(() => {
       if (activeFile) {
-        const value = modifiedEditor.getValue();
+        const value = modifEditor.getValue();
         setEditedContents((prev) => ({
           ...prev,
           [activeFile.path]: value,

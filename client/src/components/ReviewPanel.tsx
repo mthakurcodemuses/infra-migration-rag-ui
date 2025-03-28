@@ -207,42 +207,23 @@ export function ReviewPanel({ mode, onReviewFiles, onReviewComplete }: ReviewPan
                     {/* Actions Section */}
                     {!isCompleted && (
                       <div className="p-4 bg-card border-t border-border/50">
-                        {mode === "automated" ? (
-                          <>
-                            <p className="text-sm text-muted-foreground mb-3">
-                              Please review the changes and confirm
-                            </p>
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={() => handleAction(review.id, 'keep')}
-                                className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
-                                disabled={reviewActionMutation.isPending}
-                              >
-                                <Check className="h-3.5 w-3.5" />
-                                <span className="text-xs font-medium">
-                                  I've reviewed and made appropriate changes
-                                </span>
-                              </Button>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="flex gap-2 justify-end">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => handleAction(review.id, 'completed')}
-                              className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
-                              disabled={reviewActionMutation.isPending}
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              <span className="text-xs font-medium">
-                                I've reviewed and made appropriate changes
-                              </span>
-                            </Button>
-                          </div>
-                        )}
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Please review the changes and confirm
+                        </p>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleAction(review.id, mode === "automated" ? 'keep' : 'completed')}
+                            className="gap-1.5 min-w-[200px] bg-green-500 hover:bg-green-600 text-white shadow-sm"
+                            disabled={reviewActionMutation.isPending}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                            <span className="text-xs font-medium">
+                              I've reviewed and made appropriate changes
+                            </span>
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>

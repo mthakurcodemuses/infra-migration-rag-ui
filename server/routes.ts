@@ -168,6 +168,20 @@ export function registerRoutes(app: Express): Server {
 
     res.json({ success: true });
   });
+  
+  // Blueprint messages endpoint
+  app.get("/api/blueprint-messages", (_req, res) => {
+    res.json({
+      automatedChanges: {
+        pendingMessage: "There are some automated changes that need to be reviewed. Please review these changes by clicking the link below.",
+        completedMessage: "All automated changes have been reviewed and processed."
+      },
+      manualChanges: {
+        pendingMessage: "There are some changes that need to be applied manually. Please click the link below to review and apply those changes.",
+        completedMessage: "All manual changes have been reviewed and processed."
+      }
+    });
+  });
 
   // Add new save endpoint
   app.post("/api/files/save", (req, res) => {
