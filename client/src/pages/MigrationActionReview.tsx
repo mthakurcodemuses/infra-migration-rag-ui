@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { IDELayout } from "@/components/IDELayout";
 import { useState } from "react";
 
-export function HomePage() {
+export function MigrationActionReview() {
   const [mode, setMode] = useState<"automated" | "manual" | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [completedReviews, setCompletedReviews] = useState<Set<string>>(new Set());

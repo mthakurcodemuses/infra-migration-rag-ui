@@ -4,12 +4,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import IDE from "@/pages/IDE";
-import { HomePage } from "@/pages/HomePage";
+import { MigrationActionReview } from "@/pages/MigrationActionReview";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={HomePage} />
+      <Route path="/" component={MigrationActionReview} />
       <Route path="/review/:mode" component={IDE} />
       <Route component={NotFound} />
     </Switch>
