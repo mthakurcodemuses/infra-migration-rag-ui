@@ -130,12 +130,12 @@ export function MonacoEditor({
         {activeFile && (
           <DiffEditor
             height="100%"
-            theme="vs-dark"
+            theme="vs-light"
             language={getLanguage(activeFile.path)}
             original={error ? `Error loading file: ${error}` : fileContent}
             modified={editedContents[activeFile.path] || fileContent}
             options={{
-              renderSideBySide: false,
+              renderSideBySide: true,
               diffWordWrap: "on",
               readOnly: false,
               lineNumbers: "on",
